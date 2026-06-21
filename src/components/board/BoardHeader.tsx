@@ -330,7 +330,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
         <div className="controls-row-2">
           {/* Zoom Level in Canvas Mode (Placed to the left of Card Add on PC/Mobile) */}
           {activeBoard.layout === 'canvas' && (
-            <div className="zoom-controls-wrapper" style={styles.zoomControls}>
+            <div className="zoom-controls-wrapper zoom-desktop-only" style={styles.zoomControls}>
               <button 
                 className="button-premium" 
                 onClick={() => setScale(Math.max(0.2, parseFloat((scale - 0.1).toFixed(1))))}
@@ -448,6 +448,27 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
                 <Image size={16} />
                 <span style={styles.btnLabel}>배경화면</span>
               </button>
+
+              {/* Zoom Level in Canvas Mode for Mobile (Placed on the right of Wallpaper) */}
+              {activeBoard.layout === 'canvas' && (
+                <div className="zoom-controls-wrapper zoom-mobile-only" style={styles.zoomControls}>
+                  <button 
+                    className="button-premium" 
+                    onClick={() => setScale(Math.max(0.2, parseFloat((scale - 0.1).toFixed(1))))}
+                    style={styles.zoomBtn}
+                  >
+                    -
+                  </button>
+                  <span className="zoom-val-label" style={styles.zoomVal}>{Math.round(scale * 100)}%</span>
+                  <button 
+                    className="button-premium" 
+                    onClick={() => setScale(Math.min(2.0, parseFloat((scale + 0.1).toFixed(1))))}
+                    style={styles.zoomBtn}
+                  >
+                    +
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>

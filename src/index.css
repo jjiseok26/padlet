@@ -317,10 +317,21 @@ p {
   display: flex;
   align-items: center;
   gap: 12px;
+}/* Zoom display styles based on device viewport */
+.zoom-mobile-only {
+  display: none !important;
+}
+.zoom-desktop-only {
+  display: flex !important;
 }
 
-
 @media (max-width: 480px) {
+  .zoom-mobile-only {
+    display: flex !important;
+  }
+  .zoom-desktop-only {
+    display: none !important;
+  }
   /* Layout: App Viewport Adaptations */
   body {
     overflow-x: hidden;
