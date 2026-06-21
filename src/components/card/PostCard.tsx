@@ -278,25 +278,20 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
         <div style={styles.attachmentTypes}>
           <button 
             type="button"
-            onClick={() => setAttachType('none')}
+            onClick={() => {
+              setAttachType('none');
+              setAttachUrl('');
+            }}
             style={{ ...styles.attachTypeBtn, background: attachType === 'none' ? 'rgba(255,255,255,0.1)' : 'transparent' }}
           >
             없음
           </button>
           <button 
             type="button"
-            onClick={() => setAttachType('image')}
-            style={{ 
-              ...styles.attachTypeBtn, 
-              background: attachType === 'image' ? 'rgba(255,255,255,0.1)' : 'transparent',
-              color: attachType === 'image' ? 'var(--color-primary)' : 'inherit'
+            onClick={() => {
+              setAttachType('link');
+              setAttachUrl('');
             }}
-          >
-            <ImageIcon size={12} /> 이미지 주소
-          </button>
-          <button 
-            type="button"
-            onClick={() => setAttachType('link')}
             style={{ 
               ...styles.attachTypeBtn, 
               background: attachType === 'link' ? 'rgba(255,255,255,0.1)' : 'transparent',
@@ -305,14 +300,64 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
           >
             <LinkIcon size={12} /> 링크 주소
           </button>
+          <button 
+            type="button"
+            onClick={() => {
+              setAttachType('file');
+              setAttachUrl('');
+            }}
+            style={{ 
+              ...styles.attachTypeBtn, 
+              background: attachType === 'file' ? 'rgba(255,255,255,0.1)' : 'transparent',
+              color: attachType === 'file' ? 'var(--color-primary)' : 'inherit'
+            }}
+          >
+            <ImageIcon size={12} /> 파일 업로드
+          </button>
         </div>
-        {attachType !== 'none' && (
+        {attachType === 'link' && (
           <input 
             value={attachUrl}
             onChange={(e) => setAttachUrl(e.target.value)}
-            placeholder={attachType === 'image' ? '이미지 URL을 붙여넣으세요...' : '링크 URL을 붙여넣으세요 (예: google.com)...'}
+            placeholder="링크 URL을 붙여넣으세요 (예: google.com)..."
             style={styles.attachmentInput}
           />
+        )}
+        {attachType === 'file' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <input 
+              type="file"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    const base64String = reader.result as string;
+                    // base64String will contain data:image/...;base64,... or similar.
+                    setAttachUrl(base64String);
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }}
+              style={styles.attachmentInput}
+            />
+            {attachUrl && attachUrl.startsWith('data:') && (
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                {attachUrl.startsWith('data:image/') ? (
+                  <div style={{ marginTop: '4px' }}>
+                    <p style={{ marginBottom: '4px' }}>업로드된 이미지 미리보기:</p>
+                    <img 
+                      src={attachUrl} 
+                      alt="Uploaded preview" 
+                      style={{ maxWidth: '100%', maxHeight: '100px', borderRadius: '6px', objectFit: 'contain' }} 
+                    />
+                  </div>
+                ) : (
+                  <span>파일이 업로드되었습니다. ({attachUrl.split(';')[0]})</span>
+                )}
+              </div>
+            )}
+          </div>
         )}
       </div>
 
@@ -456,16 +501,54 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
           </div>
 
           {/* Attachment rendering */}
-          {!(isDragging || (layoutMode === 'column' && isAnyCardDragging)) && post.attachmentType === 'image' && post.attachmentUrl && (
+          {!(isDragging || (layoutMode === 'column' && isAnyCardDragging)) && (post.attachmentType === 'image' || post.attachmentType === 'file') && post.attachmentUrl && (
             <div style={styles.attachmentWrapper}>
-              <img 
-                src={post.attachmentUrl} 
-                alt={post.title} 
-                style={styles.attachmentImage}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1594322436404-5a0526db4d13?auto=format&fit=crop&w=350&q=80';
-                }}
-              />
+              {post.attachmentUrl.startsWith('data:image/') || post.attachmentType === 'image' ? (
+                <img 
+                  src={post.attachmentUrl} 
+                  alt={post.title} 
+                  style={styles.attachmentImage}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1594322436404-5a0526db4d13?auto=format&fit=crop&w=350&q=80';
+                  }}
+                />
+              ) : (
+                <div style={{
+                  padding: '12px',
+                  borderRadius: '10px',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  fontSize: '0.8rem'
+                }}>
+                  <ImageIcon size={20} style={{ color: 'var(--color-primary)' }} />
+                  <div style={{ flex: 1, overflow: 'hidden' }}>
+                    <div style={{ fontWeight: 'bold', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                      첨부파일
+                    </div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                      {post.attachmentUrl.startsWith('data:') ? post.attachmentUrl.split(';')[0].replace('data:', '') : '다운로드 가능 파일'}
+                    </div>
+                  </div>
+                  <a 
+                    href={post.attachmentUrl} 
+                    download={`attachment_${post.id}`}
+                    style={{
+                      padding: '4px 8px',
+                      background: 'var(--color-primary)',
+                      color: '#030712',
+                      borderRadius: '4px',
+                      textDecoration: 'none',
+                      fontWeight: 'bold',
+                      fontSize: '0.75rem'
+                    }}
+                  >
+                    다운로드
+                  </a>
+                </div>
+              )}
             </div>
           )}
 

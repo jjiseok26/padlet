@@ -640,10 +640,10 @@ const styles: Record<string, React.CSSProperties> = {
   },
   gridContainer: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+    gridTemplateColumns: 'repeat(6, 1fr)',
     gap: '24px',
     width: '100%',
-    maxWidth: '1400px',
+    maxWidth: '1800px',
     overflowY: 'auto',
     paddingBottom: '40px',
     height: 'fit-content',
