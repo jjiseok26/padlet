@@ -606,7 +606,7 @@ p {
   /* Board Viewport Mobile adjustments: support scrolling on small screens */
   div[style*="boardViewport"],
   .board-viewport {
-    top: 215px !important; /* Matches the taller board header offset */
+    top: 115px !important; /* Push up by 100px (215px -> 115px) */
     overflow-y: auto !important;
     padding: 12px !important;
   }
@@ -662,7 +662,7 @@ p {
   /* Hide columns flex container overflow on mobile and support full display flow */
   .column-view-wrapper {
     position: absolute !important;
-    top: 215px !important; /* Push down to clear the mobile board header */
+    top: 115px !important; /* Push up by 100px (215px -> 115px) */
     bottom: 0 !important;
     left: 0 !important;
     right: 0 !important;
