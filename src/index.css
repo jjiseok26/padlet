@@ -364,10 +364,12 @@ p {
     padding: 16px 12px !important;
   }
 
+  /* Force header layout: Title is placed at the top, and buttons are placed directly beneath it on a new line */
   header[style*="borderBottom: 1px solid"] {
     flex-direction: column !important;
     gap: 16px !important;
     text-align: center !important;
+    align-items: center !important;
   }
 
   header[style*="borderBottom: 1px solid"] h1 {
@@ -375,38 +377,46 @@ p {
   }
 
   header[style*="borderBottom: 1px solid"] div[style*="display: flex"] {
+    flex-direction: row !important;
     flex-wrap: wrap !important;
     justify-content: center !important;
+    gap: 8px !important;
     width: 100% !important;
   }
 
-  /* Stats panels row grid */
+  /* Stats panels: Make statItem (overall board counts) and welcome text stack vertically on separate lines */
   div[style*="statsPanel"] {
     flex-direction: column !important;
-    gap: 12px !important;
+    gap: 10px !important;
     padding: 16px !important;
     align-items: center !important;
-    text-align: center !important;
   }
 
   div[style*="statItem"] {
+    display: flex !important;
     flex-direction: column !important;
-    gap: 4px !important;
     align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    gap: 4px !important;
   }
 
   div[style*="statWelcome"] {
+    display: block !important;
+    width: 100% !important;
     text-align: center !important;
-    font-size: 0.825rem !important;
-    line-height: 1.5 !important;
+    font-size: 0.8rem !important;
+    line-height: 1.6 !important;
+    color: var(--text-muted) !important;
+    margin-top: 6px !important;
+    padding-top: 8px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
     word-break: keep-all !important;
-    margin-top: 4px !important;
   }
 
-  div[style*="verticalDivider"] {
-    width: 80% !important;
-    height: 1px !important;
-    margin: 8px auto !important;
+  /* Remove verticalDivider inside statsPanel on mobile since welcome text is now split by a border-top divider */
+  div[style*="statsPanel"] > div[style*="verticalDivider"] {
+    display: none !important;
   }
 
   /* Dashboard Board Cards Grid Adjustment: Stack items in a clean single column (one card per row) on Mobile */
