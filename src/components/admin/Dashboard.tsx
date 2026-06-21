@@ -275,14 +275,6 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
           <div style={styles.verticalDivider} />
-          <div style={styles.statItem}>
-            <Layers size={20} color="var(--color-accent)" />
-            <div>
-              <div style={styles.statNum}>{posts.length}개</div>
-              <div style={styles.statLabel}>전체 카드 수</div>
-            </div>
-          </div>
-          <div style={styles.verticalDivider} />
           <div style={styles.statWelcome}>
             <span>✨ 캔버스를 클릭해 아이디어를 구상해보세요. 더블 클릭으로 새 카드를 부착할 수 있습니다.</span>
           </div>

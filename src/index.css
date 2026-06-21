@@ -437,6 +437,69 @@ p {
     top: 15px !important;
     right: 15px !important;
   }
+
+  /* Board Viewport Mobile adjustments: support scrolling on small screens */
+  div[style*="boardViewport"] {
+    top: 120px !important;
+    overflow-y: auto !important;
+    padding: 12px !important;
+  }
+
+  /* Canvas layout adaptation: Force absolute positioned cards to stack vertically on mobile to prevent overlapping */
+  div[style*="canvasCanvas"] {
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    transform: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    padding: 12px 0 !important;
+  }
+
+  /* Reset absolute positioning on Post Cards inside Canvas to fit mobile screens flow */
+  div[style*="canvasCanvas"] > div[style*="position: absolute"] {
+    position: relative !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    transform: none !important;
+  }
+
+  /* Increase Card text legibility, size and layout spacing */
+  .glass-card {
+    padding: 18px !important;
+  }
+
+  .glass-card h3,
+  .glass-card h2,
+  div[style*="cardTitle"] {
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    line-height: 1.4 !important;
+  }
+
+  .glass-card p,
+  div[style*="cardContent"] {
+    font-size: 0.95rem !important;
+    line-height: 1.6 !important;
+    color: #f1f5f9 !important; /* Brighter high contrast text on mobile */
+  }
+
+  /* Hide columns flex container overflow on mobile */
+  div[style*="columnContainer"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  
+  div[style*="columnCard"] {
+    width: 100% !important;
+    height: auto !important;
+    margin-bottom: 24px !important;
+  }
 }
+
 
 
