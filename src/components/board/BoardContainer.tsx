@@ -88,8 +88,13 @@ export const BoardContainer: React.FC<BoardContainerProps> = ({ isGuestMode = fa
 
   // 2. Infinite Pan (Middle click or Spacebar held, or drag empty background)
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Only drag pan on empty space background
-    if (e.target !== e.currentTarget && e.target !== boardRef.current) return;
+    // Only drag pan on empty space background or canvas workspace div itself
+    const isTargetBackground = 
+      e.target === e.currentTarget || 
+      e.target === boardRef.current || 
+      (e.target as HTMLElement).style.width === '5000px';
+      
+    if (!isTargetBackground) return;
     
     if (e.button === 0 || e.button === 1) {
       setIsPanning(true);
@@ -135,8 +140,13 @@ export const BoardContainer: React.FC<BoardContainerProps> = ({ isGuestMode = fa
   // Mobile Touch Pan handlers
   const handleTouchStart = (e: React.TouchEvent) => {
     if (activeBoard.layout !== 'canvas') return;
-    // Only drag pan on empty space background
-    if (e.target !== e.currentTarget && e.target !== boardRef.current) return;
+    // Only drag pan on empty space background or canvas workspace div itself
+    const isTargetBackground = 
+      e.target === e.currentTarget || 
+      e.target === boardRef.current || 
+      (e.target as HTMLElement).style.width === '5000px';
+
+    if (!isTargetBackground) return;
 
     if (e.touches.length === 1) {
       setIsPanning(true);
