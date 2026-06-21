@@ -439,15 +439,17 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
             </>
           )}
 
-          {/* Floating manual guide icon button */}
-          <button 
-            className="button-premium" 
-            onClick={() => setIsGuideOpen(true)}
-            style={{ padding: '8px' }}
-            title="설명서 보기"
-          >
-            <HelpCircle size={18} />
-          </button>
+          {/* Floating manual guide icon button - Only for Admin */}
+          {!isGuestMode && (
+            <button 
+              className="button-premium" 
+              onClick={() => setIsGuideOpen(true)}
+              style={{ padding: '8px' }}
+              title="설명서 보기"
+            >
+              <HelpCircle size={18} />
+            </button>
+          )}
         </div>
       </div>
 
