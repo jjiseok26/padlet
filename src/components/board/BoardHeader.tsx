@@ -10,8 +10,13 @@ import {
   Check,
   Home,
   Share2,
-  Kanban
+  Kanban,
+  Download,
+  FileJson,
+  FileText
 } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 interface BoardHeaderProps {
   onToggleWallpaperPicker: () => void;
@@ -40,6 +45,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
   const [toastMessage, setToastMessage] = useState('');
   const [titleInput, setTitleInput] = useState(activeBoard?.title || '');
   const [descInput, setDescInput] = useState(activeBoard?.description || '');
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   if (!activeBoard) return null;
 
@@ -82,7 +88,6 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
     setIsEditingTitle(false);
   };
 
-
   const handleAddNewPost = () => {
     // Generate default coordinates in center of screen
     const centerX = window.innerWidth / 2 - 150;
@@ -111,6 +116,105 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
       isGuestPost: isGuestMode,
       isDraft: true
     });
+  };
+
+  // Export Board Data as JSON file
+  const handleExportJSON = () => {
+    try {
+      const boardPosts = posts.filter((p) => p.boardId === activeBoard.id);
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        board: activeBoard,
+        posts: boardPosts
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${activeBoard.title.replace(/[^\w\sㄱ-힣]/g, '') || 'board'}_export.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      setToastMessage('JSON 내보내기가 완료되었습니다!');
+      setTimeout(() => setToastMessage(''), 2000);
+    } catch (err) {
+      console.error(err);
+      setToastMessage('JSON 내보내기 실패.');
+      setTimeout(() => setToastMessage(''), 2000);
+    }
+    setShowExportMenu(false);
+  };
+
+  // Export Board viewport as PDF
+  const handleExportPDF = async () => {
+    setToastMessage('PDF 변환을 시작합니다. 잠시만 기다려주세요...');
+    setShowExportMenu(false);
+
+    try {
+      // Find the main board viewport div. In BoardContainer, the root div has ref boardRef. 
+      // We can grab it using class or querySelector.
+      const boardElement = document.querySelector('[style*="boardViewport"]') || document.querySelector('.board-viewport') || document.body;
+      
+      // Temporarily set styling or force zoom to 100% to capture nicely if layout is canvas
+      const originalScale = scale;
+      const originalPanX = useAuthStore.getState().panX;
+      const originalPanY = useAuthStore.getState().panY;
+
+      // Reset zoom scale for clean high-res capture
+      if (activeBoard.layout === 'canvas') {
+        useAuthStore.getState().setScale(1.0);
+        useAuthStore.getState().setPan(0, 0);
+        // Wait slightly for DOM to repaint
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+
+      const canvas = await html2canvas(boardElement as HTMLElement, {
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+        scale: 2, // Double resolution
+        ignoreElements: (element) => {
+          // Ignore fixed header, toast, wallpaper picker sidebar
+          const styleAttr = element.getAttribute('style') || '';
+          const isIgnored = (
+            element.tagName === 'HEADER' || 
+            (element.classList.contains('glass-panel') && styleAttr.includes('height: 76px')) || 
+            styleAttr.includes('zIndex: 100') ||
+            styleAttr.includes('zIndex: 10000') ||
+            (styleAttr.includes('width: 320px') && styleAttr.includes('right: 0'))
+          );
+          return !!isIgnored;
+        }
+      });
+
+      // Restore zoom/pan scale
+      if (activeBoard.layout === 'canvas') {
+        useAuthStore.getState().setScale(originalScale);
+        useAuthStore.getState().setPan(originalPanX, originalPanY);
+      }
+
+      const imgData = canvas.toDataURL('image/png');
+      
+      // Calculate responsive A4 size
+      const pdf = new jsPDF({
+        orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+        unit: 'px',
+        format: [canvas.width / 2, canvas.height / 2]
+      });
+
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 2, canvas.height / 2);
+      pdf.save(`${activeBoard.title.replace(/[^\w\sㄱ-힣]/g, '') || 'board'}_export.pdf`);
+      
+      setToastMessage('PDF 내보내기가 완료되었습니다!');
+      setTimeout(() => setToastMessage(''), 2000);
+    } catch (err) {
+      console.error(err);
+      setToastMessage('PDF 변환 중 오류가 발생했습니다.');
+      setTimeout(() => setToastMessage(''), 2000);
+    }
   };
 
   return (
@@ -203,6 +307,30 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
             </button>
           </div>
         )}
+
+        {/* Export Dropdown Button */}
+        <div style={{ position: 'relative' }}>
+          <button 
+            className={`button-premium ${showExportMenu ? 'active' : ''}`} 
+            onClick={() => setShowExportMenu(!showExportMenu)}
+            title="데이터 내보내기 (PDF, JSON)"
+          >
+            <Download size={16} />
+            <span style={styles.btnLabel}>내보내기</span>
+          </button>
+          {showExportMenu && (
+            <div className="glass-panel" style={styles.exportDropdown}>
+              <button onClick={handleExportPDF} style={styles.exportItem}>
+                <FileText size={14} />
+                <span>PDF 다운로드 (화면 캡처)</span>
+              </button>
+              <button onClick={handleExportJSON} style={styles.exportItem}>
+                <FileJson size={14} />
+                <span>JSON 다운로드 (백업용 데이터)</span>
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Share Link Button - Only for Admin */}
         {!isGuestMode && (
@@ -447,5 +575,38 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '0.8rem',
     fontWeight: '500',
     backdropFilter: 'blur(8px)',
+  },
+  exportDropdown: {
+    position: 'absolute',
+    top: 'calc(100% + 8px)',
+    right: 0,
+    width: '240px',
+    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    borderRadius: '12px',
+    padding: '6px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+    zIndex: 200,
+    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.4)',
+    backdropFilter: 'blur(16px)',
+  },
+  exportItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '10px 12px',
+    background: 'transparent',
+    border: 'none',
+    borderRadius: '8px',
+    color: '#e2e8f0',
+    fontSize: '0.8rem',
+    fontWeight: '500',
+    textAlign: 'left',
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
+    width: '100%',
+    outline: 'none',
   }
 };

@@ -281,3 +281,10 @@ p {
   background-color: rgba(255, 255, 255, 0.02) !important;
   transform: translateY(-2px);
 }
+
+/* Export Menu Item Hover */
+.button-premium + div button:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+}
+
