@@ -292,7 +292,7 @@ p {
    Responsive Mobile Media Queries
    ========================================================================== */
 
-@media (max-width: 768px) {
+@media (max-width: 480px) {
   /* Layout: App Viewport Adaptations */
   body {
     overflow-x: hidden;
