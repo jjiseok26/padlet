@@ -336,21 +336,20 @@ p {
     text-align: left !important;
   }
 
-  /* Header controls flex configuration */
+  /* Header controls flex configuration: Stack title container and button container on two lines */
   header[style*="borderBottom: 1px solid"] {
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    gap: 16px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 14px !important;
+    text-align: left !important;
   }
 
   header[style*="borderBottom: 1px solid"] div[style*="display: flex"] {
     flex-direction: row !important;
     flex-wrap: wrap !important;
     justify-content: flex-start !important;
-    gap: 12px !important;
-    width: auto !important;
+    gap: 10px !important;
+    width: 100% !important;
     overflow-x: visible !important;
     padding-bottom: 0 !important;
   }
