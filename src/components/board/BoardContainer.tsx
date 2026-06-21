@@ -132,6 +132,31 @@ export const BoardContainer: React.FC<BoardContainerProps> = ({ isGuestMode = fa
     }
   };
 
+  // Mobile Touch Pan handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (activeBoard.layout !== 'canvas') return;
+    // Only drag pan on empty space background
+    if (e.target !== e.currentTarget && e.target !== boardRef.current) return;
+
+    if (e.touches.length === 1) {
+      setIsPanning(true);
+      panStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      panOffset.current = { x: panX, y: panY };
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (isPanning && e.touches.length === 1) {
+      const dx = e.touches[0].clientX - panStart.current.x;
+      const dy = e.touches[0].clientY - panStart.current.y;
+      setPan(panOffset.current.x + dx, panOffset.current.y + dy);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsPanning(false);
+  };
+
   // 3. Double click to add card (converts screen coords to canvas coords)
   const handleDoubleClick = (e: React.MouseEvent) => {
     if (isGuestMode) return;
@@ -529,6 +554,9 @@ export const BoardContainer: React.FC<BoardContainerProps> = ({ isGuestMode = fa
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       onDoubleClick={handleDoubleClick}
       style={{ 
         ...styles.boardViewport, 
