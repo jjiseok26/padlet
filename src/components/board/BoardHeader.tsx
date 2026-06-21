@@ -365,9 +365,21 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
               <span style={styles.btnLabel}>링크 공유</span>
             </button>
           )}
+
+          {/* Floating manual guide icon button - Only for Admin */}
+          {!isGuestMode && (
+            <button 
+              className="button-premium help-guide-btn" 
+              onClick={() => setIsGuideOpen(true)}
+              style={{ padding: '8px' }}
+              title="설명서 보기"
+            >
+              <HelpCircle size={18} />
+            </button>
+          )}
         </div>
 
-        {/* Row 3 on Mobile: Layout View options, Wallpaper Picker, Help Guide */}
+        {/* Row 3 on Mobile: Layout View options, Wallpaper Picker */}
         <div className="controls-row-3">
           {/* Zoom Level in Canvas Mode */}
           {activeBoard.layout === 'canvas' && (
@@ -437,18 +449,6 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
                 <span style={styles.btnLabel}>배경화면</span>
               </button>
             </>
-          )}
-
-          {/* Floating manual guide icon button - Only for Admin */}
-          {!isGuestMode && (
-            <button 
-              className="button-premium" 
-              onClick={() => setIsGuideOpen(true)}
-              style={{ padding: '8px' }}
-              title="설명서 보기"
-            >
-              <HelpCircle size={18} />
-            </button>
           )}
         </div>
       </div>
