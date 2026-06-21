@@ -221,194 +221,197 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
   };
 
   return (
-    <header className="glass-panel" style={styles.header}>
-      {/* Home / Back to Dashboard */}
-      {!isGuestMode ? (
-        <button 
-          className="button-premium" 
-          onClick={() => setActiveBoardId('dashboard')}
-          style={styles.homeBtn}
-          title="대시보드로 돌아가기"
-        >
-          <Home size={18} />
-          <span>대시보드</span>
-        </button>
-      ) : (
-        <button 
-          className="button-premium" 
-          onClick={() => {
-            setActiveBoardId('dashboard');
-            window.location.href = window.location.origin;
-          }}
-          style={styles.homeBtn}
-          title="관리자 로그인으로 가기"
-        >
-          <Home size={18} />
-          <span>관리자 로그인</span>
-        </button>
-      )}
-
-      <div style={styles.divider} />
-
-      {/* Title & Description Section */}
-      <div style={styles.metaSection}>
-        {isEditingTitle ? (
-          <div style={styles.editMetaForm}>
-            <input 
-              value={titleInput}
-              onChange={(e) => setTitleInput(e.target.value)}
-              style={styles.metaInputTitle}
-              placeholder="보드 제목"
-              autoFocus
-            />
-            <input 
-              value={descInput}
-              onChange={(e) => setDescInput(e.target.value)}
-              style={styles.metaInputDesc}
-              placeholder="설명 추가..."
-            />
-            <button onClick={handleSaveMeta} style={styles.metaSaveBtn}>
-              <Check size={16} />
-            </button>
-          </div>
-        ) : (
-          <div style={styles.metaDisplay} onClick={() => {
-            if (isGuestMode) return;
-            setTitleInput(activeBoard.title);
-            setDescInput(activeBoard.description);
-            setIsEditingTitle(true);
-          }}>
-            <div style={styles.titleWrapper}>
-              <h1>{activeBoard.title}</h1>
-              {!isGuestMode && <Edit2 size={12} style={styles.editIcon} />}
-
+    <header className="glass-panel board-header-container" style={styles.header}>
+      {/* Title & Description Section + Home button in first row for mobile */}
+      <div className="board-header-row-first">
+        <div style={styles.metaSection}>
+          {isEditingTitle ? (
+            <div style={styles.editMetaForm}>
+              <input 
+                value={titleInput}
+                onChange={(e) => setTitleInput(e.target.value)}
+                style={styles.metaInputTitle}
+                placeholder="보드 제목"
+                autoFocus
+              />
+              <input 
+                value={descInput}
+                onChange={(e) => setDescInput(e.target.value)}
+                style={styles.metaInputDesc}
+                placeholder="설명 추가..."
+              />
+              <button onClick={handleSaveMeta} style={styles.metaSaveBtn}>
+                <Check size={16} />
+              </button>
             </div>
-            <p style={styles.descText}>{activeBoard.description}</p>
-          </div>
-        )}
-      </div>
-
-      {/* Control Tools Section */}
-      <div style={styles.controlsSection}>
-        {/* Zoom Level in Canvas Mode */}
-        {activeBoard.layout === 'canvas' && (
-          <div style={styles.zoomControls}>
-            <button 
-              className="button-premium" 
-              onClick={() => setScale(Math.max(0.2, parseFloat((scale - 0.1).toFixed(1))))}
-              style={styles.zoomBtn}
-            >
-              -
-            </button>
-            <span style={styles.zoomVal}>{Math.round(scale * 100)}%</span>
-            <button 
-              className="button-premium" 
-              onClick={() => setScale(Math.min(2.0, parseFloat((scale + 0.1).toFixed(1))))}
-              style={styles.zoomBtn}
-            >
-              +
-            </button>
-          </div>
-        )}
-
-        {/* Export Dropdown Button */}
-        <div style={{ position: 'relative' }}>
-          <button 
-            className={`button-premium ${showExportMenu ? 'active' : ''}`} 
-            onClick={() => setShowExportMenu(!showExportMenu)}
-            title="데이터 내보내기 (PDF, JSON)"
-          >
-            <Download size={16} />
-            <span style={styles.btnLabel}>내보내기</span>
-          </button>
-          {showExportMenu && (
-            <div className="glass-panel" style={styles.exportDropdown}>
-              <button onClick={handleExportPDF} style={styles.exportItem}>
-                <FileText size={14} />
-                <span>PDF 다운로드 (화면 캡처)</span>
-              </button>
-              <button onClick={handleExportJSON} style={styles.exportItem}>
-                <FileJson size={14} />
-                <span>JSON 다운로드 (백업용 데이터)</span>
-              </button>
+          ) : (
+            <div style={styles.metaDisplay} onClick={() => {
+              if (isGuestMode) return;
+              setTitleInput(activeBoard.title);
+              setDescInput(activeBoard.description);
+              setIsEditingTitle(true);
+            }}>
+              <div style={styles.titleWrapper}>
+                <h1>{activeBoard.title}</h1>
+                {!isGuestMode && <Edit2 size={12} style={styles.editIcon} />}
+              </div>
+              <p style={styles.descText}>{activeBoard.description}</p>
             </div>
           )}
         </div>
 
-        {/* Share Link Button - Only for Admin */}
-        {!isGuestMode && (
-          <button className="button-premium" onClick={handleCopyShareLink} title="가상 공유 링크 복사">
-            <Share2 size={16} />
-            <span style={styles.btnLabel}>링크 공유</span>
+        {/* Home / Back to Dashboard */}
+        {!isGuestMode ? (
+          <button 
+            className="button-premium home-btn-mobile" 
+            onClick={() => setActiveBoardId('dashboard')}
+            style={styles.homeBtn}
+            title="대시보드로 돌아가기"
+          >
+            <Home size={18} />
+            <span>대시보드</span>
+          </button>
+        ) : (
+          <button 
+            className="button-premium home-btn-mobile" 
+            onClick={() => {
+              setActiveBoardId('dashboard');
+              window.location.href = window.location.origin;
+            }}
+            style={styles.homeBtn}
+            title="관리자 로그인으로 가기"
+          >
+            <Home size={18} />
+            <span>관리자 로그인</span>
           </button>
         )}
+      </div>
 
-        {!isGuestMode && (
-          <>
-            {/* Layout Selectors */}
-            <div style={styles.buttonGroup}>
-              <button 
-                className={`button-premium ${activeBoard.layout === 'grid' ? 'active' : ''}`}
-                onClick={() => updateBoardMeta(activeBoard.id, { layout: 'grid' })}
-                title="격자(Grid)형 레이아웃"
-              >
-                <LayoutGrid size={16} />
-                <span style={styles.btnLabel}>Grid</span>
-              </button>
-              
-              <button 
-                className={`button-premium ${activeBoard.layout === 'wall' ? 'active' : ''}`}
-                onClick={() => updateBoardMeta(activeBoard.id, { layout: 'wall' })}
-                title="벽돌(Wall/Masonry)형 레이아웃"
-              >
-                <Columns size={16} />
-                <span style={styles.btnLabel}>Wall</span>
-              </button>
+      {/* Control Tools Section */}
+      <div className="board-header-controls-mobile" style={styles.controlsSection}>
+        {/* Row 2 on Mobile: Card Add, Export, Share */}
+        <div className="controls-row-2">
+          {/* Add Card Action - Always visible for guest posting */}
+          <button className="button-premium active add-card-btn-mobile" onClick={handleAddNewPost} style={styles.addButton}>
+            <Plus size={18} />
+            <span>카드 추가</span>
+          </button>
 
-              <button 
-                className={`button-premium ${activeBoard.layout === 'canvas' ? 'active' : ''}`}
-                onClick={() => updateBoardMeta(activeBoard.id, { layout: 'canvas' })}
-                title="자유(Canvas)형 레이아웃"
-              >
-                <Move size={16} />
-                <span style={styles.btnLabel}>Canvas</span>
-              </button>
+          {/* Export Dropdown Button */}
+          <div style={{ position: 'relative' }}>
+            <button 
+              className={`button-premium ${showExportMenu ? 'active' : ''}`} 
+              onClick={() => setShowExportMenu(!showExportMenu)}
+              title="데이터 내보내기 (PDF, JSON)"
+            >
+              <Download size={16} />
+              <span style={styles.btnLabel}>내보내기</span>
+            </button>
+            {showExportMenu && (
+              <div className="glass-panel" style={styles.exportDropdown}>
+                <button onClick={handleExportPDF} style={styles.exportItem}>
+                  <FileText size={14} />
+                  <span>PDF 다운로드</span>
+                </button>
+                <button onClick={handleExportJSON} style={styles.exportItem}>
+                  <FileJson size={14} />
+                  <span>JSON 다운로드</span>
+                </button>
+              </div>
+            )}
+          </div>
 
+          {/* Share Link Button - Only for Admin */}
+          {!isGuestMode && (
+            <button className="button-premium" onClick={handleCopyShareLink} title="가상 공유 링크 복사">
+              <Share2 size={16} />
+              <span style={styles.btnLabel}>링크 공유</span>
+            </button>
+          )}
+        </div>
+
+        {/* Row 3 on Mobile: Layout View options, Wallpaper Picker, Help Guide */}
+        <div className="controls-row-3">
+          {/* Zoom Level in Canvas Mode */}
+          {activeBoard.layout === 'canvas' && (
+            <div style={styles.zoomControls}>
               <button 
-                className={`button-premium ${activeBoard.layout === 'column' ? 'active' : ''}`}
-                onClick={() => updateBoardMeta(activeBoard.id, { layout: 'column' })}
-                title="컬럼(Column/Kanban)형 레이아웃"
+                className="button-premium" 
+                onClick={() => setScale(Math.max(0.2, parseFloat((scale - 0.1).toFixed(1))))}
+                style={styles.zoomBtn}
               >
-                <Kanban size={16} />
-                <span style={styles.btnLabel}>Column</span>
+                -
+              </button>
+              <span style={styles.zoomVal}>{Math.round(scale * 100)}%</span>
+              <button 
+                className="button-premium" 
+                onClick={() => setScale(Math.min(2.0, parseFloat((scale + 0.1).toFixed(1))))}
+                style={styles.zoomBtn}
+              >
+                +
               </button>
             </div>
+          )}
 
-            {/* Wallpaper Picker */}
-            <button className="button-premium" onClick={onToggleWallpaperPicker}>
-              <Image size={16} />
-              <span style={styles.btnLabel}>배경화면</span>
-            </button>
+          {!isGuestMode && (
+            <>
+              {/* Layout Selectors */}
+              <div style={styles.buttonGroup}>
+                <button 
+                  className={`button-premium ${activeBoard.layout === 'grid' ? 'active' : ''}`}
+                  onClick={() => updateBoardMeta(activeBoard.id, { layout: 'grid' })}
+                  title="격자(Grid)형 레이아웃"
+                >
+                  <LayoutGrid size={16} />
+                  <span style={styles.btnLabel}>Grid</span>
+                </button>
+                
+                <button 
+                  className={`button-premium ${activeBoard.layout === 'wall' ? 'active' : ''}`}
+                  onClick={() => updateBoardMeta(activeBoard.id, { layout: 'wall' })}
+                  title="벽돌(Wall/Masonry)형 레이아웃"
+                >
+                  <Columns size={16} />
+                  <span style={styles.btnLabel}>Wall</span>
+                </button>
 
-            <div style={styles.divider} />
-          </>
-        )}
+                <button 
+                  className={`button-premium ${activeBoard.layout === 'canvas' ? 'active' : ''}`}
+                  onClick={() => updateBoardMeta(activeBoard.id, { layout: 'canvas' })}
+                  title="자유(Canvas)형 레이아웃"
+                >
+                  <Move size={16} />
+                  <span style={styles.btnLabel}>Canvas</span>
+                </button>
 
-        {/* Add Card Action - Always visible for guest posting */}
-        <button className="button-premium active" onClick={handleAddNewPost} style={styles.addButton}>
-          <Plus size={18} />
-          <span>카드 추가</span>
-        </button>
+                <button 
+                  className={`button-premium ${activeBoard.layout === 'column' ? 'active' : ''}`}
+                  onClick={() => updateBoardMeta(activeBoard.id, { layout: 'column' })}
+                  title="컬럼(Column/Kanban)형 레이아웃"
+                >
+                  <Kanban size={16} />
+                  <span style={styles.btnLabel}>Column</span>
+                </button>
+              </div>
 
-        {/* Floating manual guide icon button */}
-        <button 
-          className="button-premium" 
-          onClick={() => setIsGuideOpen(true)}
-          style={{ padding: '8px' }}
-          title="설명서 보기"
-        >
-          <HelpCircle size={18} />
-        </button>
+              {/* Wallpaper Picker */}
+              <button className="button-premium" onClick={onToggleWallpaperPicker}>
+                <Image size={16} />
+                <span style={styles.btnLabel}>배경화면</span>
+              </button>
+            </>
+          )}
+
+          {/* Floating manual guide icon button */}
+          <button 
+            className="button-premium" 
+            onClick={() => setIsGuideOpen(true)}
+            style={{ padding: '8px' }}
+            title="설명서 보기"
+          >
+            <HelpCircle size={18} />
+          </button>
+        </div>
       </div>
 
       {/* Toast Alert Inside Header */}

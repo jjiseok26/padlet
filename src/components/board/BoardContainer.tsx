@@ -520,7 +520,7 @@ export const BoardContainer: React.FC<BoardContainerProps> = ({ isGuestMode = fa
     >
       {/* Grid Mode Rendering */}
       {activeBoard.layout === 'grid' && (
-        <div style={styles.gridContainer}>
+        <div className="grid-layout-container" style={styles.gridContainer}>
           {boardPosts.map(post => (
             <PostCard 
               key={post.id} 

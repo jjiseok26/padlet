@@ -309,6 +309,78 @@ p {
     justify-content: center !important;
   }
 
+  /* Specific BoardHeader styles for Mobile */
+  .board-header-container {
+    height: auto !important;
+    min-height: 160px !important;
+    flex-direction: column !important;
+    padding: 12px 16px !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+  }
+
+  .board-header-row-first {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 12px !important;
+  }
+
+  .board-header-row-first > div[style*="metaSection"] {
+    margin-left: 0 !important;
+    flex: 1 !important;
+  }
+
+  .board-header-row-first .home-btn-mobile {
+    width: 40px !important;
+    height: 40px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+  }
+
+  .board-header-row-first .home-btn-mobile span {
+    display: none !important; /* Hide home button text, icon only */
+  }
+
+  .board-header-controls-mobile {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin-top: 2px !important;
+  }
+
+  .board-header-controls-mobile .controls-row-2,
+  .board-header-controls-mobile .controls-row-3 {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .board-header-controls-mobile .controls-row-2 {
+    justify-content: flex-start !important;
+  }
+
+  .board-header-controls-mobile .controls-row-3 {
+    justify-content: flex-start !important;
+  }
+
+  .board-header-controls-mobile .add-card-btn-mobile {
+    width: auto !important;
+    flex: 1 !important;
+  }
+
+  .board-header-controls-mobile .add-card-btn-mobile span {
+    display: inline !important; /* Always show 'Card Add' text */
+  }
+
   /* Dashboard Header (teacher dashboard) specifically */
   #teacher-dashboard-header {
     flex-direction: column !important;
@@ -335,7 +407,7 @@ p {
 
   /* Adjust Board container top spacing to prevent header overlap */
   div[style*="top: 76px"] {
-    top: 120px !important;
+    top: 215px !important; /* Pushed down to clear the taller board header on mobile */
     padding: 16px !important;
   }
 
@@ -500,10 +572,18 @@ p {
   }
 
   /* Board Viewport Mobile adjustments: support scrolling on small screens */
-  div[style*="boardViewport"] {
-    top: 120px !important;
+  div[style*="boardViewport"],
+  .board-viewport {
+    top: 215px !important; /* Matches the taller board header offset */
     overflow-y: auto !important;
     padding: 12px !important;
+  }
+
+  /* Grid Layout: Columns adaptation (Make grid display one card per line) */
+  div[style*="gridContainer"],
+  .grid-layout-container {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
   }
 
   /* Canvas layout adaptation: Force absolute positioned cards to stack vertically on mobile to prevent overlapping */
