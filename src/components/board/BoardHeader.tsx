@@ -381,27 +381,6 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
 
         {/* Row 3 on Mobile: Layout View options, Wallpaper Picker */}
         <div className="controls-row-3">
-          {/* Zoom Level in Canvas Mode */}
-          {activeBoard.layout === 'canvas' && (
-            <div style={styles.zoomControls}>
-              <button 
-                className="button-premium" 
-                onClick={() => setScale(Math.max(0.2, parseFloat((scale - 0.1).toFixed(1))))}
-                style={styles.zoomBtn}
-              >
-                -
-              </button>
-              <span className="zoom-val-label" style={styles.zoomVal}>{Math.round(scale * 100)}%</span>
-              <button 
-                className="button-premium" 
-                onClick={() => setScale(Math.min(2.0, parseFloat((scale + 0.1).toFixed(1))))}
-                style={styles.zoomBtn}
-              >
-                +
-              </button>
-            </div>
-          )}
-
           {!isGuestMode && (
             <>
               {/* Layout Selectors */}
@@ -449,6 +428,27 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
                 <span style={styles.btnLabel}>배경화면</span>
               </button>
             </>
+          )}
+
+          {/* Zoom Level in Canvas Mode */}
+          {activeBoard.layout === 'canvas' && (
+            <div style={styles.zoomControls}>
+              <button 
+                className="button-premium" 
+                onClick={() => setScale(Math.max(0.2, parseFloat((scale - 0.1).toFixed(1))))}
+                style={styles.zoomBtn}
+              >
+                -
+              </button>
+              <span className="zoom-val-label" style={styles.zoomVal}>{Math.round(scale * 100)}%</span>
+              <button 
+                className="button-premium" 
+                onClick={() => setScale(Math.min(2.0, parseFloat((scale + 0.1).toFixed(1))))}
+                style={styles.zoomBtn}
+              >
+                +
+              </button>
+            </div>
           )}
         </div>
       </div>
