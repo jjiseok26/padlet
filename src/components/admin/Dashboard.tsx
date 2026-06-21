@@ -16,7 +16,8 @@ import {
   Key,
   Share2,
   Search,
-  Kanban
+  Kanban,
+  Upload
 } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
@@ -26,7 +27,8 @@ export const Dashboard: React.FC = () => {
     createBoard, 
     deleteBoard, 
     updateBoardMeta,
-    changeAdminPassword
+    changeAdminPassword,
+    importBoardData
   } = useBoardStore();
 
   const { setActiveBoardId, logout } = useAuthStore();
@@ -168,6 +170,35 @@ export const Dashboard: React.FC = () => {
     return 0;
   });
 
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        
+        // Validation: JSON must contain board and posts
+        if (!json || !json.board || !json.board.id || !Array.isArray(json.posts)) {
+          showToast('올바르지 않은 보드 백업 파일(JSON)입니다.');
+          return;
+        }
+
+        // Import
+        importBoardData(json.board, json.posts);
+        showToast(`'${json.board.title}' 보드가 성공적으로 불러오기 되었습니다!`);
+        
+        // Reset file input value so same file can be uploaded again
+        e.target.value = '';
+      } catch (err) {
+        console.error(err);
+        showToast('파일을 읽는 도중 오류가 발생했습니다.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div style={styles.dashboardViewport}>
       <div style={styles.dashboardContainer}>
@@ -178,6 +209,24 @@ export const Dashboard: React.FC = () => {
             <p style={styles.subtitle}>아이디어 수집과 기획 캔버스를 생성하고 관리하는 공간입니다.</p>
           </div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            {/* Hidden File Input */}
+            <input 
+              type="file" 
+              id="json-import-input" 
+              accept=".json" 
+              onChange={handleImportFile} 
+              style={{ display: 'none' }}
+            />
+            <label 
+              htmlFor="json-import-input" 
+              className="button-premium"
+              style={{ cursor: 'pointer' }}
+              title="보드 JSON 파일 가져오기 (복원)"
+            >
+              <Upload size={16} />
+              <span>보드 불러오기</span>
+            </label>
+
             <button 
               className="button-premium" 
               onClick={() => setIsPasswordModalOpen(true)}
