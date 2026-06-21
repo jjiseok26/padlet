@@ -548,7 +548,7 @@ export const Dashboard: React.FC = () => {
                 <input 
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="예: 마케팅 기획 보드"
+                  placeholder="예: 아이디어 기획 보드"
                   required
                   style={styles.formInput}
                 />
