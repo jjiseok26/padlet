@@ -570,6 +570,29 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
                 </span>
               </div>
               <p style={styles.cardContent}>{post.content}</p>
+              
+              {/* Auto Link Preview in Content */}
+              {(() => {
+                // If there's already an explicit attachment url, we skip duplicate inline parsing
+                if (post.attachmentUrl) return null;
+
+                // Simple URL Regex to match standard hyperlinks (http, https, www, or typical domains)
+                const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\/[^\s]*|[a-zA-Z0-9.-]+\.(?:com|net|org|kr|io|gov)\b)/gi;
+                const matches = post.content.match(urlRegex);
+                if (matches && matches.length > 0) {
+                  let foundUrl = matches[0];
+                  // Normalize if it's just www. or a raw domain
+                  if (!foundUrl.startsWith('http://') && !foundUrl.startsWith('https://')) {
+                    foundUrl = 'https://' + foundUrl;
+                  }
+                  return (
+                    <div style={{ marginTop: '10px' }}>
+                      <LinkPreview url={foundUrl} />
+                    </div>
+                  );
+                }
+                return null;
+              })()}
             </div>
           )}
 
