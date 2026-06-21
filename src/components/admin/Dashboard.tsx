@@ -17,8 +17,10 @@ import {
   Share2,
   Search,
   Kanban,
-  Upload
+  Upload,
+  HelpCircle
 } from 'lucide-react';
+import { GuideModal } from '../board/GuideModal';
 
 export const Dashboard: React.FC = () => {
   const { 
@@ -37,6 +39,7 @@ export const Dashboard: React.FC = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [newLayout, setNewLayout] = useState<LayoutType>('canvas');
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   // Password change & Toast state
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -227,6 +230,14 @@ export const Dashboard: React.FC = () => {
               <span>보드 불러오기</span>
             </label>
 
+            <button 
+              className="button-premium"
+              onClick={() => setIsGuideOpen(true)}
+              title="사용 설명서 보기"
+            >
+              <HelpCircle size={16} />
+              <span>설명서</span>
+            </button>
             <button 
               className="button-premium" 
               onClick={() => setIsPasswordModalOpen(true)}
@@ -657,6 +668,7 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       )}
+      <GuideModal isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
     </div>
   );
 };

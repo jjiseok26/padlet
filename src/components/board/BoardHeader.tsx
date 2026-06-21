@@ -13,10 +13,12 @@ import {
   Kanban,
   Download,
   FileJson,
-  FileText
+  FileText,
+  HelpCircle
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { GuideModal } from './GuideModal';
 
 interface BoardHeaderProps {
   onToggleWallpaperPicker: () => void;
@@ -46,6 +48,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
   const [titleInput, setTitleInput] = useState(activeBoard?.title || '');
   const [descInput, setDescInput] = useState(activeBoard?.description || '');
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   if (!activeBoard) return null;
 
@@ -396,6 +399,16 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
           <Plus size={18} />
           <span>카드 추가</span>
         </button>
+
+        {/* Floating manual guide icon button */}
+        <button 
+          className="button-premium" 
+          onClick={() => setIsGuideOpen(true)}
+          style={{ padding: '8px' }}
+          title="설명서 보기"
+        >
+          <HelpCircle size={18} />
+        </button>
       </div>
 
       {/* Toast Alert Inside Header */}
@@ -404,6 +417,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
           <span>{toastMessage}</span>
         </div>
       )}
+      <GuideModal isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
     </header>
   );
 };

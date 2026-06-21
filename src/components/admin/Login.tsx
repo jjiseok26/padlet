@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '../../store/useBoardStore';
 import { motion } from 'framer-motion';
-import { Lock, User, LogIn, ShieldAlert } from 'lucide-react';
+import { Lock, User, LogIn, ShieldAlert, HelpCircle } from 'lucide-react';
+import { GuideModal } from '../board/GuideModal';
 
 export const Login: React.FC = () => {
   const login = useAuthStore(state => state.login);
@@ -10,6 +11,7 @@ export const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [shakeTrigger, setShakeTrigger] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +54,17 @@ export const Login: React.FC = () => {
         }}
         style={{ ...styles.glowOrb, ...styles.glowOrb2 }}
       />
+
+      {/* Floating Guide Button for First Time Users */}
+      <button 
+        className="button-premium active"
+        onClick={() => setIsGuideOpen(true)}
+        style={styles.floatingGuideBtn}
+        title="서비스 사용 설명서 열기"
+      >
+        <HelpCircle size={18} />
+        <span>처음 오셨나요? 사용 설명서 보기</span>
+      </button>
 
       {/* Glassmorphic Login Card */}
       <motion.div
@@ -129,6 +142,9 @@ export const Login: React.FC = () => {
           </button>
         </form>
       </motion.div>
+
+      {/* Guide Manual Modal */}
+      <GuideModal isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
     </div>
   );
 };
@@ -264,5 +280,12 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '0.9rem',
     fontWeight: 'bold',
     marginTop: '6px',
+  },
+  floatingGuideBtn: {
+    position: 'absolute',
+    top: '30px',
+    right: '30px',
+    zIndex: 100,
+    cursor: 'pointer',
   }
 };
