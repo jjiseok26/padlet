@@ -208,7 +208,7 @@ export const Dashboard: React.FC = () => {
         {/* Header */}
         <header id="teacher-dashboard-header" style={styles.header}>
           <div>
-            <h1 style={styles.title}>크리에이티브 보드</h1>
+            <h1 style={styles.title}>아이디어 보드</h1>
           </div>
           <div className="button-container-mobile" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             {/* Hidden File Input */}

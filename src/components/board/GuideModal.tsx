@@ -27,7 +27,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({ isOpen, onClose }) => {
         <div style={styles.header}>
           <div style={styles.headerTitle}>
             <HelpCircle size={22} color="var(--color-primary)" />
-            <h2>크리에이티브 패들릿 사용 설명서</h2>
+            <h2>아이디어 보드 사용 설명서</h2>
           </div>
           <button style={styles.closeBtn} onClick={onClose}>
             <X size={20} />
