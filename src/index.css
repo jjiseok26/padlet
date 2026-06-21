@@ -288,9 +288,27 @@ p {
   color: #ffffff !important;
 }
 
-/* ==========================================================================
-   Responsive Mobile Media Queries
-   ========================================================================== */
+/* PC Desktop Fallbacks for Board Header Wrappers (Wraps in a single horizontal row on PC) */
+.board-header-row-first {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.board-header-controls-mobile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.board-header-controls-mobile .controls-row-2,
+.board-header-controls-mobile .controls-row-3 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 
 @media (max-width: 480px) {
   /* Layout: App Viewport Adaptations */
