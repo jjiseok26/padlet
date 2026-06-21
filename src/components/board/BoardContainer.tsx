@@ -158,6 +158,27 @@ export const BoardContainer: React.FC<BoardContainerProps> = ({ isGuestMode = fa
         const mouseY = e.clientY - rect.top;
         posX = Math.round((mouseX - panX) / scale - 150);
         posY = Math.round((mouseY - panY) / scale - 80);
+        
+        // Avoid overlap
+        const cardWidth = 320;
+        const cardHeight = 240;
+        let overlapFound = true;
+        let attempts = 0;
+        
+        while (overlapFound && attempts < 50) {
+          overlapFound = false;
+          for (const post of boardPosts) {
+            const distanceX = Math.abs(post.positionX - posX);
+            const distanceY = Math.abs(post.positionY - posY);
+            if (distanceX < cardWidth - 20 && distanceY < cardHeight - 20) {
+              overlapFound = true;
+              posX += 40;
+              posY += 40;
+              break;
+            }
+          }
+          attempts++;
+        }
       }
     }
 

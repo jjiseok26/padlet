@@ -93,9 +93,44 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
 
   const handleAddNewPost = () => {
     // Generate default coordinates in center of screen
-    const centerX = window.innerWidth / 2 - 150;
-    const centerY = window.innerHeight / 2 - 150;
+    const defaultX = window.innerWidth / 2 - 150;
+    const defaultY = window.innerHeight / 2 - 150;
     
+    // Find active board posts
+    const activePosts = posts.filter(p => p.boardId === activeBoard.id);
+    
+    let targetX = defaultX;
+    let targetY = defaultY;
+    
+    // Collision detection: Check if any post occupies this space (Card size approx: Width ~300px, Height ~220px)
+    const cardWidth = 320;
+    const cardHeight = 240;
+    
+    let overlapFound = true;
+    let attempts = 0;
+    
+    // Search grid pattern around center if overlapping exists
+    while (overlapFound && attempts < 100) {
+      overlapFound = false;
+      for (const post of activePosts) {
+        // If it overlaps with an existing card, offset position and re-check
+        const distanceX = Math.abs(post.positionX - targetX);
+        const distanceY = Math.abs(post.positionY - targetY);
+        
+        if (distanceX < cardWidth - 20 && distanceY < cardHeight - 20) {
+          overlapFound = true;
+          // Shift right, and if it exceeds boundary shift down and reset X
+          targetX += 50;
+          if (targetX > window.innerWidth - 350) {
+            targetX = 50;
+            targetY += 50;
+          }
+          break;
+        }
+      }
+      attempts++;
+    }
+
     const colors = [
       'var(--card-indigo)',
       'var(--card-emerald)',
@@ -111,8 +146,8 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
       content: '',
       attachmentType: 'none',
       color: randomColor,
-      positionX: centerX,
-      positionY: centerY,
+      positionX: targetX,
+      positionY: targetY,
       author: isGuestMode ? '' : '관리자',
       password: isGuestMode ? '' : undefined,
       isApproved: true,
