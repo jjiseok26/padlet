@@ -448,6 +448,17 @@ p {
     display: none !important;
   }
 
+  /* Hide zoom percent label on mobile to save space */
+  .zoom-val-label {
+    display: none !important;
+  }
+
+  /* Shrink gap of zoom buttons control container slightly on mobile */
+  div[style*="zoomControls"] {
+    gap: 4px !important;
+    padding: 2px 4px !important;
+  }
+
   /* Show icon labels only or adjust structure */
   .button-premium {
     padding: 10px !important;

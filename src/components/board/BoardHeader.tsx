@@ -379,7 +379,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
               >
                 -
               </button>
-              <span style={styles.zoomVal}>{Math.round(scale * 100)}%</span>
+              <span className="zoom-val-label" style={styles.zoomVal}>{Math.round(scale * 100)}%</span>
               <button 
                 className="button-premium" 
                 onClick={() => setScale(Math.min(2.0, parseFloat((scale + 0.1).toFixed(1))))}
