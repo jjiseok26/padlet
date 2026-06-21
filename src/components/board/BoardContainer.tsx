@@ -251,7 +251,7 @@ export const BoardContainer: React.FC<BoardContainerProps> = ({ isGuestMode = fa
 
   // 5. Masonry Column Calculator (Wall layout)
   const renderWallLayout = () => {
-    const columns: Post[][] = [[], [], []]; // 3 columns for wall
+    const columns: Post[][] = [[], [], [], [], [], []]; // 6 columns for wall
     boardPosts.forEach((post) => {
       // Calculate column heights (longer content = taller card representation)
       const colHeights = columns.map(col => 
@@ -653,7 +653,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     gap: '24px',
     width: '100%',
-    maxWidth: '1400px',
+    maxWidth: '1800px',
     overflowY: 'auto',
     paddingBottom: '40px',
     height: '100%',
