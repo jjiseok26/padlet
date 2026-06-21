@@ -293,17 +293,23 @@ p {
   display: flex;
   align-items: center;
   gap: 16px;
-  flex: 1;
+  flex: 0 0 auto; /* Stop layout stretching to flex 1 */
 }
 
 .board-header-row-first .home-btn-mobile {
   margin-right: 0 !important;
 }
 
+.board-header-desktop-divider {
+  display: block !important;
+}
+
 .board-header-controls-mobile {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 1;
+  justify-content: flex-end;
 }
 
 .board-header-controls-mobile .controls-row-2,
@@ -366,6 +372,10 @@ p {
 
   .board-header-row-first .home-btn-mobile span {
     display: none !important; /* Hide home button text, icon only */
+  }
+
+  .board-header-desktop-divider {
+    display: none !important;
   }
 
   .board-header-controls-mobile {

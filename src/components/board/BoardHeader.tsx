@@ -322,6 +322,8 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
         </div>
       </div>
 
+      <div className="board-header-desktop-divider" style={styles.divider} />
+
       {/* Control Tools Section */}
       <div className="board-header-controls-mobile" style={styles.controlsSection}>
         {/* Row 2 on Mobile: Card Add, Export, Share */}
