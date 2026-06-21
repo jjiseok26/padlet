@@ -296,6 +296,10 @@ p {
   flex: 1;
 }
 
+.board-header-row-first .home-btn-mobile {
+  margin-right: 0 !important;
+}
+
 .board-header-controls-mobile {
   display: flex;
   align-items: center;

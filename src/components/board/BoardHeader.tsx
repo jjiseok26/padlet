@@ -259,6 +259,32 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
     <header className="glass-panel board-header-container" style={styles.header}>
       {/* Title & Description Section + Home button in first row for mobile */}
       <div className="board-header-row-first">
+        {/* Home / Back to Dashboard */}
+        {!isGuestMode ? (
+          <button 
+            className="button-premium home-btn-mobile" 
+            onClick={() => setActiveBoardId('dashboard')}
+            style={styles.homeBtn}
+            title="대시보드로 돌아가기"
+          >
+            <Home size={18} />
+            <span>대시보드</span>
+          </button>
+        ) : (
+          <button 
+            className="button-premium home-btn-mobile" 
+            onClick={() => {
+              setActiveBoardId('dashboard');
+              window.location.href = window.location.origin;
+            }}
+            style={styles.homeBtn}
+            title="관리자 로그인으로 가기"
+          >
+            <Home size={18} />
+            <span>관리자 로그인</span>
+          </button>
+        )}
+
         <div style={styles.metaSection}>
           {isEditingTitle ? (
             <div style={styles.editMetaForm}>
@@ -294,32 +320,6 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
             </div>
           )}
         </div>
-
-        {/* Home / Back to Dashboard */}
-        {!isGuestMode ? (
-          <button 
-            className="button-premium home-btn-mobile" 
-            onClick={() => setActiveBoardId('dashboard')}
-            style={styles.homeBtn}
-            title="대시보드로 돌아가기"
-          >
-            <Home size={18} />
-            <span>대시보드</span>
-          </button>
-        ) : (
-          <button 
-            className="button-premium home-btn-mobile" 
-            onClick={() => {
-              setActiveBoardId('dashboard');
-              window.location.href = window.location.origin;
-            }}
-            style={styles.homeBtn}
-            title="관리자 로그인으로 가기"
-          >
-            <Home size={18} />
-            <span>관리자 로그인</span>
-          </button>
-        )}
       </div>
 
       {/* Control Tools Section */}
