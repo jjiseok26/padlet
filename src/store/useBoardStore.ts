@@ -249,9 +249,19 @@ const loadInitialBoardState = () => {
     if (dataStr) {
       const parsed = JSON.parse(dataStr);
       if (parsed && parsed.state) {
+        const loadedBoards = parsed.state.boards || INITIAL_BOARDS;
+        const loadedPosts = parsed.state.posts || INITIAL_POSTS;
+        
+        // Gather all deleted IDs from boards
+        const allDeletedIds = new Set<string>();
+        loadedBoards.forEach((b: any) => b.deletedPostIds?.forEach((id: string) => allDeletedIds.add(id)));
+        
+        // Filter loaded posts to exclude deleted ones
+        const filteredPosts = loadedPosts.filter((p: any) => !allDeletedIds.has(p.id));
+
         return {
-          boards: parsed.state.boards || INITIAL_BOARDS,
-          posts: parsed.state.posts || INITIAL_POSTS,
+          boards: loadedBoards,
+          posts: filteredPosts,
           adminPassword: parsed.state.adminPassword || 'admin'
         };
       }
