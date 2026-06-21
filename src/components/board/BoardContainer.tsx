@@ -218,8 +218,8 @@ export const BoardContainer: React.FC<BoardContainerProps> = ({ isGuestMode = fa
     }
 
     addPost(activeBoard.id, {
-      title: '새로운 생각 카드',
-      content: '여기에 생각한 내용을 적어주세요. 더블클릭하여 편집하거나 드래그하여 움직일 수 있습니다.',
+      title: '',
+      content: '',
       attachmentType: 'none',
       color: randomColor,
       positionX: posX,
@@ -390,8 +390,8 @@ export const BoardContainer: React.FC<BoardContainerProps> = ({ isGuestMode = fa
                   <button 
                     onClick={() => {
                       addPost(activeBoard.id, {
-                        title: '새로운 컬럼 카드',
-                        content: '여기에 내용을 작성해 주세요.',
+                        title: '',
+                        content: '',
                         attachmentType: 'none',
                         color: 'var(--card-indigo)',
                         positionX: 0,
