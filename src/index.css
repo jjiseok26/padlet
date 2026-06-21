@@ -431,10 +431,11 @@ p {
   #teacher-dashboard-header .button-container-mobile {
     display: flex !important;
     flex-direction: row !important;
-    flex-wrap: wrap !important;
-    justify-content: flex-start !important;
-    gap: 8px !important;
+    flex-wrap: nowrap !important; /* Force all buttons on one single row */
+    justify-content: space-between !important;
+    gap: 4px !important; /* Narrow gap to fit */
     width: 100% !important;
+    overflow-x: auto !important; /* Allow scroll if screen is extremely narrow */
   }
 
   /* Adjust Board container top spacing to prevent header overlap */
@@ -452,13 +453,16 @@ p {
   #teacher-dashboard-header .button-premium {
     width: auto !important;
     height: auto !important;
-    padding: 8px 12px !important;
-    justify-content: flex-start !important;
+    padding: 6px 8px !important; /* Compact padding */
+    justify-content: center !important;
+    flex: 1 !important; /* Distribute space evenly */
+    min-width: 0 !important; /* Prevent flex blowout */
   }
 
   #teacher-dashboard-header .button-premium span {
     display: inline !important;
-    font-size: 0.8rem !important;
+    font-size: 0.65rem !important; /* Slightly smaller text to fit single row */
+    white-space: nowrap !important;
   }
 
   /* Hide zoom percent label on mobile to save space */
