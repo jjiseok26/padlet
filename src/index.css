@@ -667,7 +667,7 @@ p {
     left: 0 !important;
     right: 0 !important;
     overflow-y: auto !important;
-    padding: 12px !important;
+    padding: 12px 12px 60px 12px !important; /* Add generous 60px padding at the bottom so the last card is fully visible */
   }
 
   div[style*="columnContainer"],
