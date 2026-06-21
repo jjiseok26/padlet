@@ -309,6 +309,30 @@ p {
     justify-content: center !important;
   }
 
+  /* Dashboard Header (teacher dashboard) specifically */
+  #teacher-dashboard-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding-bottom: 16px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+  }
+
+  #teacher-dashboard-header > div:first-child {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+  }
+
+  #teacher-dashboard-header .button-container-mobile {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
   /* Adjust Board container top spacing to prevent header overlap */
   div[style*="top: 76px"] {
     top: 120px !important;
@@ -317,13 +341,16 @@ p {
 
   /* Hide verbose text labels in buttons ONLY on very narrow screens (< 480px), otherwise allow wrap */
   .button-premium span {
-    display: inline !important;
+    display: none !important;
   }
 
   /* Show icon labels only or adjust structure */
   .button-premium {
-    padding: 8px 14px !important;
-    border-radius: 10px !important;
+    padding: 10px !important;
+    border-radius: 8px !important;
+    width: 40px !important;
+    height: 40px !important;
+    justify-content: center !important;
   }
 
   /* Title Adaptation */
@@ -334,24 +361,6 @@ p {
   p {
     font-size: 0.9rem !important;
     text-align: left !important;
-  }
-
-  /* Header controls flex configuration: Stack title container and button container on two lines */
-  header[style*="borderBottom: 1px solid"] {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 14px !important;
-    text-align: left !important;
-  }
-
-  header[style*="borderBottom: 1px solid"] div[style*="display: flex"] {
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
-    justify-content: flex-start !important;
-    gap: 10px !important;
-    width: 100% !important;
-    overflow-x: visible !important;
-    padding-bottom: 0 !important;
   }
 
   /* Stats panels: Make statItem and welcome text align in single row as in desktop view */
