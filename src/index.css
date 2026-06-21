@@ -1,0 +1,283 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+
+  /* Global Color Tokens */
+  --bg-app: #030712;
+  --bg-header: rgba(15, 23, 42, 0.6);
+  --bg-card-base: rgba(30, 41, 59, 0.45);
+  --border-card-base: rgba(255, 255, 255, 0.08);
+  --bg-card-solid: #1e293b;
+  --bg-column: rgba(15, 23, 42, 0.25);
+  --border-column: rgba(255, 255, 255, 0.04);
+  --text-main: #ffffff;
+  --text-muted: #cbd5e1;
+  --color-primary: #818cf8;
+  --color-accent: #c084fc;
+
+  /* Curated Premium Post Card HSL Colors (Values only, to interpolate alpha) */
+  --card-indigo-h: 235;
+  --card-indigo-s: 85%;
+  --card-indigo-l: 65%;
+
+  --card-emerald-h: 150;
+  --card-emerald-s: 80%;
+  --card-emerald-l: 60%;
+
+  --card-peach-h: 20;
+  --card-peach-s: 90%;
+  --card-peach-l: 65%;
+
+  --card-sky-h: 195;
+  --card-sky-s: 90%;
+  --card-sky-l: 62%;
+
+  --card-rose-h: 330;
+  --card-rose-s: 85%;
+  --card-rose-l: 65%;
+
+  --card-amber-h: 42;
+  --card-amber-s: 95%;
+  --card-amber-l: 58%;
+
+  --card-violet-h: 270;
+  --card-violet-s: 85%;
+  --card-violet-l: 65%;
+
+  --card-mint-h: 170;
+  --card-mint-s: 75%;
+  --card-mint-l: 58%;
+
+  /* Interpolated variable styles */
+  --card-indigo: hsla(var(--card-indigo-h), var(--card-indigo-s), var(--card-indigo-l), 0.08);
+  --card-emerald: hsla(var(--card-emerald-h), var(--card-emerald-s), var(--card-emerald-l), 0.08);
+  --card-peach: hsla(var(--card-peach-h), var(--card-peach-s), var(--card-peach-l), 0.08);
+  --card-sky: hsla(var(--card-sky-h), var(--card-sky-s), var(--card-sky-l), 0.08);
+  --card-rose: hsla(var(--card-rose-h), var(--card-rose-s), var(--card-rose-l), 0.08);
+  --card-amber: hsla(var(--card-amber-h), var(--card-amber-s), var(--card-amber-l), 0.08);
+  --card-violet: hsla(var(--card-violet-h), var(--card-violet-s), var(--card-violet-l), 0.08);
+  --card-mint: hsla(var(--card-mint-h), var(--card-mint-s), var(--card-mint-l), 0.08);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.light-theme {
+  --bg-app: #f3f4f6;
+  --bg-header: rgba(255, 255, 255, 0.7);
+  --bg-card-base: rgba(255, 255, 255, 0.85);
+  --border-card-base: rgba(15, 23, 42, 0.08);
+  --bg-card-solid: #ffffff;
+  --bg-column: rgba(255, 255, 255, 0.45);
+  --border-column: rgba(15, 23, 42, 0.05);
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --color-primary: #4f46e5;
+  --color-accent: #7c3aed;
+
+  /* Pastel card opacity adjustment for high contrast on light backgrounds */
+  --card-indigo: hsla(var(--card-indigo-h), var(--card-indigo-s), 45%, 0.16);
+  --card-emerald: hsla(var(--card-emerald-h), var(--card-emerald-s), 40%, 0.16);
+  --card-peach: hsla(var(--card-peach-h), var(--card-peach-s), 45%, 0.16);
+  --card-sky: hsla(var(--card-sky-h), var(--card-sky-s), 40%, 0.16);
+  --card-rose: hsla(var(--card-rose-h), var(--card-rose-s), 45%, 0.16);
+  --card-amber: hsla(var(--card-amber-h), var(--card-amber-s), 40%, 0.16);
+  --card-violet: hsla(var(--card-violet-h), var(--card-violet-s), 45%, 0.16);
+  --card-mint: hsla(var(--card-mint-h), var(--card-mint-s), 40%, 0.16);
+}
+
+.light-theme h1 {
+  background: linear-gradient(to right, #0f172a, #2563eb, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.light-theme .button-premium {
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: var(--text-main);
+}
+
+.light-theme .button-premium:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.light-theme .button-premium.active {
+  background: var(--color-primary);
+  border-color: var(--color-accent);
+  color: #ffffff;
+  box-shadow: 0 0 15px rgba(79, 70, 229, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+  background: var(--bg-header);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card {
+  background: var(--bg-card-base);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  border: 1px solid var(--border-card-base);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+}
+
+/* Hover glow effect linked to card color */
+.glass-card:hover {
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Animations */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes cursorPulse {
+  0% { box-shadow: 0 0 0 0px rgba(129, 140, 248, 0.5); }
+  70% { box-shadow: 0 0 0 10px rgba(129, 140, 248, 0); }
+  100% { box-shadow: 0 0 0 0px rgba(129, 140, 248, 0); }
+}
+
+@keyframes cardGlow {
+  0%, 100% { border-color: rgba(255, 255, 255, 0.08); }
+  50% { border-color: var(--color-primary); }
+}
+
+.cursor-pulse {
+  animation: cursorPulse 2s infinite;
+}
+
+/* Utility to ensure text behaves nicely when editing */
+.input-reset {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: inherit;
+  font-family: inherit;
+  width: 100%;
+}
+
+.button-premium {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.button-premium:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.button-premium:active {
+  transform: translateY(1px);
+}
+
+.button-premium.active {
+  background: var(--color-primary);
+  border-color: var(--color-accent);
+  color: #030712;
+  box-shadow: 0 0 15px rgba(129, 140, 248, 0.35);
+}
+
+/* Typography styles */
+h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  background: linear-gradient(to right, #ffffff, #93c5fd, #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+p {
+  font-size: 0.925rem;
+  color: var(--text-muted);
+}
+
+/* Dashboard hover styles */
+.delete-board-btn {
+  transition: all 0.2s ease;
+}
+.delete-board-btn:hover {
+  color: #f87171 !important;
+  background-color: rgba(248, 113, 113, 0.1) !important;
+}
+
+.add-placeholder-card {
+  transition: all 0.2s ease;
+}
+.add-placeholder-card:hover {
+  border-color: var(--color-primary) !important;
+  background-color: rgba(255, 255, 255, 0.02) !important;
+  transform: translateY(-2px);
+}
