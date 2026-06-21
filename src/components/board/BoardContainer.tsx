@@ -252,7 +252,7 @@ export const BoardContainer: React.FC<BoardContainerProps> = ({ isGuestMode = fa
     });
 
     return (
-      <div style={styles.wallGrid}>
+      <div className="wall-layout-container" style={styles.wallGrid}>
         {columns.map((col, colIdx) => (
           <div key={colIdx} style={styles.wallColumn}>
             {col.map(post => (
