@@ -469,7 +469,7 @@ export const Dashboard: React.FC = () => {
       {/* PASSWORD CHANGE MODAL */}
       {isPasswordModalOpen && (
         <div style={styles.modalBackdrop}>
-          <div className="glass-panel" style={styles.modalContent}>
+          <div className="glass-panel modal-responsive" style={styles.modalContent}>
             <div style={styles.modalHeader}>
               <h2>교사 암호 변경</h2>
               <button onClick={() => { setIsPasswordModalOpen(false); setPasswordError(''); }} style={styles.closeBtn}>
@@ -535,7 +535,7 @@ export const Dashboard: React.FC = () => {
       {/* CREATE BOARD MODAL */}
       {isModalOpen && (
         <div style={styles.modalBackdrop}>
-          <div className="glass-panel" style={styles.modalContent}>
+          <div className="glass-panel modal-responsive" style={styles.modalContent}>
             <div style={styles.modalHeader}>
               <h2>새 보드 생성</h2>
               <button onClick={() => setIsModalOpen(false)} style={styles.closeBtn}>
@@ -572,6 +572,7 @@ export const Dashboard: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setNewLayout('canvas')}
+                    className="layout-picker-btn"
                     style={{ 
                       ...styles.layoutRadioBtn,
                       border: newLayout === 'canvas' ? '1px solid var(--color-primary)' : '1px solid rgba(255,255,255,0.08)',
@@ -584,6 +585,7 @@ export const Dashboard: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setNewLayout('grid')}
+                    className="layout-picker-btn"
                     style={{ 
                       ...styles.layoutRadioBtn,
                       border: newLayout === 'grid' ? '1px solid var(--color-primary)' : '1px solid rgba(255,255,255,0.08)',
@@ -596,6 +598,7 @@ export const Dashboard: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setNewLayout('wall')}
+                    className="layout-picker-btn"
                     style={{ 
                       ...styles.layoutRadioBtn,
                       border: newLayout === 'wall' ? '1px solid var(--color-primary)' : '1px solid rgba(255,255,255,0.08)',
@@ -608,6 +611,7 @@ export const Dashboard: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setNewLayout('column')}
+                    className="layout-picker-btn"
                     style={{ 
                       ...styles.layoutRadioBtn,
                       border: newLayout === 'column' ? '1px solid var(--color-primary)' : '1px solid rgba(255,255,255,0.08)',
@@ -623,7 +627,7 @@ export const Dashboard: React.FC = () => {
               {/* Wallpaper Picker */}
               <div style={styles.formGroup}>
                 <label style={styles.formLabel}>보드 배경</label>
-                <div style={styles.colorPresetGrid}>
+                <div className="color-presets-wrapper" style={styles.colorPresetGrid}>
                   {wallpaperPresets.map(preset => (
                     <button
                       key={preset.name}

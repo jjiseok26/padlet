@@ -449,6 +449,50 @@ p {
     gap: 12px !important;
   }
 
+  /* Create Board Modal & Password Modal Mobile adaptation */
+  .modal-responsive {
+    width: 90% !important;
+    max-width: 400px !important;
+    padding: 20px !important;
+    gap: 16px !important;
+    box-sizing: border-box !important;
+  }
+
+  .modal-responsive h2 {
+    font-size: 1.25rem !important;
+  }
+
+  .modal-responsive label {
+    font-size: 0.8rem !important;
+  }
+
+  .modal-responsive input,
+  .modal-responsive textarea {
+    font-size: 0.95rem !important;
+    padding: 12px !important;
+  }
+
+  /* Layout Picker button tweaks on mobile */
+  .modal-responsive .layout-picker-btn {
+    padding: 12px 14px !important;
+    font-size: 0.9rem !important;
+  }
+
+  .modal-responsive .layout-picker-btn span {
+    display: inline !important; /* Force layout names to show */
+  }
+
+  /* Colors grid wrapping */
+  .modal-responsive .color-presets-wrapper {
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+  }
+
+  .modal-responsive .color-presets-wrapper button {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
   /* Floating manual button */
   button[style*="position: absolute"][style*="top: 30px"] {
     top: 15px !important;
