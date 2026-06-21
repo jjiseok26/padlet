@@ -495,39 +495,9 @@ p {
     text-align: left !important;
   }
 
-  /* Stats panels: Make statItem and welcome text align in single row as in desktop view */
-  div[style*="statsPanel"] {
-    flex-direction: row !important;
-    gap: 32px !important;
-    padding: 20px 24px !important;
-    align-items: center !important;
-  }
-
-  div[style*="statItem"] {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    width: auto !important;
-    gap: 12px !important;
-  }
-
-  div[style*="statWelcome"] {
-    display: block !important;
-    width: auto !important;
-    text-align: right !important;
-    font-size: 0.85rem !important;
-    line-height: 1.5 !important;
-    color: var(--text-muted) !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border-top: none !important;
-    word-break: keep-all !important;
-    flex: 1 !important;
-  }
-
-  div[style*="statsPanel"] > div[style*="verticalDivider"] {
-    display: block !important;
+  /* Hide stats board count badge on mobile layout to save space since buttons already occupy full row width */
+  .dashboard-board-count-tag {
+    display: none !important;
   }
 
   /* Dashboard Board Cards Grid: Revert to multi-column layout as in grid desktop view */

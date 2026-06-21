@@ -254,23 +254,25 @@ export const Dashboard: React.FC = () => {
               <LogOut size={16} />
               <span>로그아웃</span>
             </button>
-          </div>
-        </header>
-
-        {/* Stats Counter Row */}
-        <div className="glass-panel" style={styles.statsPanel}>
-          <div style={styles.statItem}>
-            <FolderHeart size={20} color="var(--color-primary)" />
-            <div>
-              <div style={styles.statNum}>{boards.length}개</div>
-              <div style={styles.statLabel}>전체 보드</div>
+            
+            {/* Total Board Count Badge */}
+            <div className="dashboard-board-count-tag" style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              padding: '8px 12px',
+              borderRadius: '10px',
+              fontSize: '0.8rem',
+              color: 'var(--text-muted)',
+              fontWeight: '500',
+            }}>
+              <FolderHeart size={14} color="var(--color-primary)" />
+              <span>전체 보드: <strong style={{ color: '#ffffff' }}>{boards.length}</strong>개</span>
             </div>
           </div>
-          <div style={styles.verticalDivider} />
-          <div style={styles.statWelcome}>
-            <span>✨ 캔버스를 클릭해 아이디어를 구상해보세요. 더블 클릭으로 새 카드를 부착할 수 있습니다.</span>
-          </div>
-        </div>
+        </header>
 
         {/* Filter & Search Controls Row */}
         <div style={styles.filterRow}>
