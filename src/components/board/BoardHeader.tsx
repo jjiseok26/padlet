@@ -328,6 +328,27 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
       <div className="board-header-controls-mobile" style={styles.controlsSection}>
         {/* Row 2 on Mobile: Card Add, Export, Share */}
         <div className="controls-row-2">
+          {/* Zoom Level in Canvas Mode (Placed to the left of Card Add on PC/Mobile) */}
+          {activeBoard.layout === 'canvas' && (
+            <div className="zoom-controls-wrapper" style={styles.zoomControls}>
+              <button 
+                className="button-premium" 
+                onClick={() => setScale(Math.max(0.2, parseFloat((scale - 0.1).toFixed(1))))}
+                style={styles.zoomBtn}
+              >
+                -
+              </button>
+              <span className="zoom-val-label" style={styles.zoomVal}>{Math.round(scale * 100)}%</span>
+              <button 
+                className="button-premium" 
+                onClick={() => setScale(Math.min(2.0, parseFloat((scale + 0.1).toFixed(1))))}
+                style={styles.zoomBtn}
+              >
+                +
+              </button>
+            </div>
+          )}
+
           {/* Add Card Action - Always visible for guest posting */}
           <button className="button-premium active add-card-btn-mobile" onClick={handleAddNewPost} style={styles.addButton}>
             <Plus size={18} />
@@ -428,27 +449,6 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
                 <span style={styles.btnLabel}>배경화면</span>
               </button>
             </>
-          )}
-
-          {/* Zoom Level in Canvas Mode */}
-          {activeBoard.layout === 'canvas' && (
-            <div style={styles.zoomControls}>
-              <button 
-                className="button-premium" 
-                onClick={() => setScale(Math.max(0.2, parseFloat((scale - 0.1).toFixed(1))))}
-                style={styles.zoomBtn}
-              >
-                -
-              </button>
-              <span className="zoom-val-label" style={styles.zoomVal}>{Math.round(scale * 100)}%</span>
-              <button 
-                className="button-premium" 
-                onClick={() => setScale(Math.min(2.0, parseFloat((scale + 0.1).toFixed(1))))}
-                style={styles.zoomBtn}
-              >
-                +
-              </button>
-            </div>
           )}
         </div>
       </div>

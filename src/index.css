@@ -471,7 +471,8 @@ p {
   }
 
   /* Shrink gap of zoom buttons control container slightly on mobile */
-  div[style*="zoomControls"] {
+  div[style*="zoomControls"],
+  .zoom-controls-wrapper {
     gap: 4px !important;
     padding: 2px 4px !important;
   }
