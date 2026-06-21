@@ -659,30 +659,45 @@ p {
     color: #f1f5f9 !important; /* Brighter high contrast text on mobile */
   }
 
-  /* Hide columns flex container overflow on mobile and support full display flow */
+  /* Support horizontal swiping/scrolling of columns on mobile devices */
   .column-view-wrapper {
     position: absolute !important;
     top: 215px !important; /* Push down to clear the mobile board header */
     bottom: 0 !important;
     left: 0 !important;
     right: 0 !important;
-    overflow-y: auto !important;
+    overflow-x: auto !important; /* Enable horizontal scrolling */
+    overflow-y: hidden !important;
     padding: 12px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    -webkit-overflow-scrolling: touch !important; /* Smooth inertial scrolling on iOS */
   }
 
   div[style*="columnContainer"],
   .column-layout-container {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    height: auto !important;
+    display: flex !important;
+    flex-direction: row !important; /* Horizontally align columns */
+    align-items: flex-start !important;
+    height: 100% !important;
+    gap: 16px !important;
+    width: max-content !important; /* Let container expand to the right */
     overflow: visible !important;
   }
   
   div[style*="columnCard"],
   .column-card-box {
-    width: 100% !important;
-    height: auto !important;
-    margin-bottom: 24px !important;
+    width: 290px !important; /* Give fixed width to columns so they align next to each other */
+    flex-shrink: 0 !important; /* Prevent columns from shrinking */
+    height: 100% !important; /* Fill container height */
+    overflow-y: auto !important; /* Allow scroll inside columns */
+    margin-bottom: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: rgba(15, 23, 42, 0.45) !important;
+    border-radius: 12px !important;
+    padding: 12px !important;
   }
 }
 
