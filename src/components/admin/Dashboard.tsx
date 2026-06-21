@@ -427,28 +427,28 @@ export const Dashboard: React.FC = () => {
                         background: 'rgba(255, 255, 255, 0.05)',
                         border: '1px solid rgba(255, 255, 255, 0.08)',
                         borderRadius: '8px',
-                        padding: '6px 12px',
+                        padding: '8px',
                         color: 'var(--text-main)',
                         fontSize: '0.75rem',
                         fontWeight: '600',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '6px',
-                        transition: 'all 0.15s ease'
+                        justifyContent: 'center',
+                        transition: 'all 0.15s ease',
+                        flexShrink: 0
                       }}
                       className="button-premium"
                       title="보드 데이터를 JSON 파일로 내보내기"
                     >
-                      <Download size={12} />
-                      <span>내보내기</span>
+                      <Download size={14} />
                     </button>
                   </div>
 
-                  <div style={styles.cardFooterActions}>
+                  <div style={{ ...styles.cardFooterActions, flexWrap: 'nowrap' }}>
                     <button 
                       onClick={() => handleCopyShareLink(board.id)} 
-                      style={styles.shareBoardBtn}
+                      style={{ ...styles.shareBoardBtn, flexShrink: 0 }}
                       className="share-board-btn"
                       title="공유 링크 복사"
                     >
@@ -456,7 +456,7 @@ export const Dashboard: React.FC = () => {
                     </button>
                     <button 
                       onClick={() => deleteBoard(board.id)} 
-                      style={styles.deleteBoardBtn}
+                      style={{ ...styles.deleteBoardBtn, flexShrink: 0 }}
                       className="delete-board-btn"
                       title="보드 삭제"
                     >
@@ -464,7 +464,7 @@ export const Dashboard: React.FC = () => {
                     </button>
                     <button 
                       onClick={() => setActiveBoardId(board.id)}
-                      style={styles.openBoardBtn}
+                      style={{ ...styles.openBoardBtn, whiteSpace: 'nowrap', flexShrink: 0 }}
                     >
                       <span>열기</span>
                       <ArrowRight size={12} />
