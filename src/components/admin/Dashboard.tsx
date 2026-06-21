@@ -254,14 +254,6 @@ export const Dashboard: React.FC = () => {
               <LogOut size={16} />
               <span>로그아웃</span>
             </button>
-            <button 
-              className="button-premium active" 
-              onClick={() => setIsModalOpen(true)}
-              style={styles.createBtn}
-            >
-              <Plus size={18} />
-              <span>새 보드 만들기</span>
-            </button>
           </div>
         </header>
 

@@ -448,6 +448,19 @@ p {
     display: none !important;
   }
 
+  /* Ensure dashboard utility buttons keep text and stay readable/prominent on mobile */
+  #teacher-dashboard-header .button-premium {
+    width: auto !important;
+    height: auto !important;
+    padding: 8px 12px !important;
+    justify-content: flex-start !important;
+  }
+
+  #teacher-dashboard-header .button-premium span {
+    display: inline !important;
+    font-size: 0.8rem !important;
+  }
+
   /* Hide zoom percent label on mobile to save space */
   .zoom-val-label {
     display: none !important;
