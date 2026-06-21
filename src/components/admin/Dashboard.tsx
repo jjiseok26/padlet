@@ -783,8 +783,10 @@ const styles: Record<string, React.CSSProperties> = {
   },
   header: {
     display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+    gap: '16px',
     borderBottom: '1px solid rgba(255,255,255,0.05)',
     paddingBottom: '20px',
   },
