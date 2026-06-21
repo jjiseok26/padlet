@@ -229,8 +229,51 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
         transition: 'border 0.3s ease, box-shadow 0.3s ease',
       };
 
+  const [isDragOverEditor, setIsDragOverEditor] = useState(false);
+
+  const handleEditorDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOverEditor(true);
+  };
+
+  const handleEditorDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOverEditor(false);
+  };
+
+  const handleEditorDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOverEditor(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setAttachType('file');
+        setAttachUrl(base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const renderEditorContent = () => (
-    <div style={styles.editorContainer}>
+    <div 
+      style={{
+        ...styles.editorContainer,
+        backgroundColor: isDragOverEditor ? 'rgba(129, 140, 248, 0.1)' : 'transparent',
+        border: isDragOverEditor ? '2px dashed var(--color-primary)' : '2px solid transparent',
+        borderRadius: '16px',
+        transition: 'all 0.2s ease',
+      }}
+      onDragOver={handleEditorDragOver}
+      onDragEnter={handleEditorDragOver}
+      onDragLeave={handleEditorDragLeave}
+      onDrop={handleEditorDrop}
+    >
       <div style={{ height: '6px', backgroundColor: cardBg, margin: '-24px -20px 16px -20px', borderRadius: '16px 16px 0 0' }} />
       <div style={{ ...styles.editorHeader, cursor: 'grab' }}>
         <span style={styles.editorTitle}>{post.isDraft ? '새 카드 작성' : '카드 수정'}</span>
@@ -500,9 +543,47 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
             </div>
           </div>
 
+          {/* Content Body */}
+          {!(isDragging || (layoutMode === 'column' && isAnyCardDragging)) && (
+            <div style={styles.cardBody}>
+              <div style={styles.authorRow}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={styles.authorBadge}>{post.author || '익명'}</span>
+                </div>
+                <span style={styles.timestamp}>
+                  {new Date(post.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+              <p style={styles.cardContent}>{post.content}</p>
+              
+              {/* Auto Link Preview in Content */}
+              {(() => {
+                // If there's already an explicit attachment url, we skip duplicate inline parsing
+                if (post.attachmentUrl) return null;
+
+                // Simple URL Regex to match standard hyperlinks (http, https, www, or typical domains)
+                const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\/[^\s]*|[a-zA-Z0-9.-]+\.(?:com|net|org|kr|io|gov)\b)/gi;
+                const matches = post.content.match(urlRegex);
+                if (matches && matches.length > 0) {
+                  let foundUrl = matches[0];
+                  // Normalize if it's just www. or a raw domain
+                  if (!foundUrl.startsWith('http://') && !foundUrl.startsWith('https://')) {
+                    foundUrl = 'https://' + foundUrl;
+                  }
+                  return (
+                    <div style={{ marginTop: '10px' }}>
+                      <LinkPreview url={foundUrl} />
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+            </div>
+          )}
+
           {/* Attachment rendering */}
           {!(isDragging || (layoutMode === 'column' && isAnyCardDragging)) && (post.attachmentType === 'image' || post.attachmentType === 'file') && post.attachmentUrl && (
-            <div style={styles.attachmentWrapper}>
+            <div style={{ ...styles.attachmentWrapper, marginBottom: '12px' }}>
               {post.attachmentUrl.startsWith('data:image/') || post.attachmentType === 'image' ? (
                 <img 
                   src={post.attachmentUrl} 
@@ -553,46 +634,8 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
           )}
 
           {!(isDragging || (layoutMode === 'column' && isAnyCardDragging)) && post.attachmentType === 'link' && post.attachmentUrl && (
-            <div style={styles.attachmentWrapper}>
+            <div style={{ ...styles.attachmentWrapper, marginBottom: '12px' }}>
               <LinkPreview url={post.attachmentUrl} />
-            </div>
-          )}
-
-          {/* Content Body */}
-          {!(isDragging || (layoutMode === 'column' && isAnyCardDragging)) && (
-            <div style={styles.cardBody}>
-              <div style={styles.authorRow}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={styles.authorBadge}>{post.author || '익명'}</span>
-                </div>
-                <span style={styles.timestamp}>
-                  {new Date(post.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-              <p style={styles.cardContent}>{post.content}</p>
-              
-              {/* Auto Link Preview in Content */}
-              {(() => {
-                // If there's already an explicit attachment url, we skip duplicate inline parsing
-                if (post.attachmentUrl) return null;
-
-                // Simple URL Regex to match standard hyperlinks (http, https, www, or typical domains)
-                const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\/[^\s]*|[a-zA-Z0-9.-]+\.(?:com|net|org|kr|io|gov)\b)/gi;
-                const matches = post.content.match(urlRegex);
-                if (matches && matches.length > 0) {
-                  let foundUrl = matches[0];
-                  // Normalize if it's just www. or a raw domain
-                  if (!foundUrl.startsWith('http://') && !foundUrl.startsWith('https://')) {
-                    foundUrl = 'https://' + foundUrl;
-                  }
-                  return (
-                    <div style={{ marginTop: '10px' }}>
-                      <LinkPreview url={foundUrl} />
-                    </div>
-                  );
-                }
-                return null;
-              })()}
             </div>
           )}
 
