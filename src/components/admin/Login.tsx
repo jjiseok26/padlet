@@ -114,7 +114,7 @@ export const Login: React.FC = () => {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="ID를 입력해 주세요 (admin)"
+                placeholder="ID를 입력해 주세요"
                 required
                 style={styles.inputField}
               />
@@ -129,7 +129,7 @@ export const Login: React.FC = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="비밀번호를 입력해 주세요 (admin)"
+                placeholder="비밀번호를 입력해 주세요"
                 required
                 style={styles.inputField}
               />
