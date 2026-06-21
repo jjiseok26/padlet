@@ -18,7 +18,8 @@ import {
   Search,
   Kanban,
   Upload,
-  HelpCircle
+  HelpCircle,
+  Download
 } from 'lucide-react';
 import { GuideModal } from '../board/GuideModal';
 
@@ -28,7 +29,6 @@ export const Dashboard: React.FC = () => {
     posts, 
     createBoard, 
     deleteBoard, 
-    updateBoardMeta,
     changeAdminPassword,
     importBoardData
   } = useBoardStore();
@@ -382,47 +382,53 @@ export const Dashboard: React.FC = () => {
 
                 {/* Quick Layout & Actions Footer */}
                 <div style={styles.cardFooter}>
-                  {/* Quick Layout selectors */}
-                  <div style={styles.quickLayoutGroup}>
+                  {/* Board Data Export Action */}
+                  <div style={{ display: 'flex', gap: '8px' }}>
                     <button
-                      onClick={() => updateBoardMeta(board.id, { layout: 'canvas' })}
-                      style={{ 
-                        ...styles.quickLayoutBtn,
-                        color: board.layout === 'canvas' ? 'var(--color-primary)' : 'var(--text-muted)'
+                      onClick={() => {
+                        try {
+                          const boardPosts = posts.filter((p) => p.boardId === board.id);
+                          const exportData = {
+                            exportedAt: new Date().toISOString(),
+                            board: board,
+                            posts: boardPosts
+                          };
+
+                          const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                          const url = URL.createObjectURL(blob);
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.download = `${board.title.replace(/[^\w\sㄱ-힣]/g, '') || 'board'}_export.json`;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                          URL.revokeObjectURL(url);
+                          
+                          showToast('보드 내보내기가 완료되었습니다!');
+                        } catch (err) {
+                          console.error(err);
+                          showToast('보드 내보내기에 실패했습니다.');
+                        }
                       }}
-                      title="Canvas로 빠른 변경"
-                    >
-                      <Move size={14} />
-                    </button>
-                    <button
-                      onClick={() => updateBoardMeta(board.id, { layout: 'grid' })}
-                      style={{ 
-                        ...styles.quickLayoutBtn,
-                        color: board.layout === 'grid' ? 'var(--color-primary)' : 'var(--text-muted)'
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '8px',
+                        padding: '6px 12px',
+                        color: 'var(--text-main)',
+                        fontSize: '0.75rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        transition: 'all 0.15s ease'
                       }}
-                      title="Grid로 빠른 변경"
+                      className="button-premium"
+                      title="보드 데이터를 JSON 파일로 내보내기"
                     >
-                      <LayoutGrid size={14} />
-                    </button>
-                    <button
-                      onClick={() => updateBoardMeta(board.id, { layout: 'wall' })}
-                      style={{ 
-                        ...styles.quickLayoutBtn,
-                        color: board.layout === 'wall' ? 'var(--color-primary)' : 'var(--text-muted)'
-                      }}
-                      title="Wall로 빠른 변경"
-                    >
-                      <Columns size={14} />
-                    </button>
-                    <button
-                      onClick={() => updateBoardMeta(board.id, { layout: 'column' })}
-                      style={{ 
-                        ...styles.quickLayoutBtn,
-                        color: board.layout === 'column' ? 'var(--color-primary)' : 'var(--text-muted)'
-                      }}
-                      title="Column으로 빠른 변경"
-                    >
-                      <Kanban size={14} />
+                      <Download size={12} />
+                      <span>내보내기</span>
                     </button>
                   </div>
 
