@@ -73,9 +73,22 @@ export const Dashboard: React.FC = () => {
     }
 
     try {
+      // Base64 file attachments can be very large and cause URI_TOO_LONG (exceeding URL length limits).
+      // We strip the content of file attachments or convert them to a placeholder if they are data URLs.
+      const cleanedPosts = targetPosts.map(p => {
+        if (p.attachmentUrl && p.attachmentUrl.startsWith('data:')) {
+          return {
+            ...p,
+            attachmentUrl: '', // Clear large base64 data to keep URL small
+            content: p.content + ' \n(공유 링크 생성 시 대용량 파일 첨부는 안전을 위해 제외되었습니다.)'
+          };
+        }
+        return p;
+      });
+
       const shareData = {
         board: targetBoard,
-        posts: targetPosts
+        posts: cleanedPosts
       };
 
       const jsonStr = JSON.stringify(shareData);
