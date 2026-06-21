@@ -312,13 +312,14 @@ export const BoardContainer: React.FC<BoardContainerProps> = ({ isGuestMode = fa
 
   const renderColumnLayout = () => {
     return (
-      <div style={styles.columnViewWrapper}>
-        <div style={styles.columnContainer}>
+      <div className="column-view-wrapper" style={styles.columnViewWrapper}>
+        <div className="column-layout-container" style={styles.columnContainer}>
           {customColumns.map((colName, idx) => {
             const colPosts = boardPosts.filter(p => (p.columnName || '기본 컬럼') === colName);
             return (
               <div 
                 key={colName} 
+                className="column-card-box"
                 style={styles.columnCard}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {

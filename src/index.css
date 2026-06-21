@@ -659,15 +659,27 @@ p {
     color: #f1f5f9 !important; /* Brighter high contrast text on mobile */
   }
 
-  /* Hide columns flex container overflow on mobile */
-  div[style*="columnContainer"] {
+  /* Hide columns flex container overflow on mobile and support full display flow */
+  .column-view-wrapper {
+    position: absolute !important;
+    top: 215px !important; /* Push down to clear the mobile board header */
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    overflow-y: auto !important;
+    padding: 12px !important;
+  }
+
+  div[style*="columnContainer"],
+  .column-layout-container {
     flex-direction: column !important;
     align-items: stretch !important;
     height: auto !important;
     overflow: visible !important;
   }
   
-  div[style*="columnCard"] {
+  div[style*="columnCard"],
+  .column-card-box {
     width: 100% !important;
     height: auto !important;
     margin-bottom: 24px !important;
