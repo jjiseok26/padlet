@@ -385,12 +385,41 @@ p {
     flex-direction: column !important;
     gap: 12px !important;
     padding: 16px !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  div[style*="statItem"] {
+    flex-direction: column !important;
+    gap: 4px !important;
+    align-items: center !important;
+  }
+
+  div[style*="statWelcome"] {
+    text-align: center !important;
+    font-size: 0.825rem !important;
+    line-height: 1.5 !important;
+    word-break: keep-all !important;
+    margin-top: 4px !important;
   }
 
   div[style*="verticalDivider"] {
-    width: 100% !important;
+    width: 80% !important;
     height: 1px !important;
-    margin: 4px 0 !important;
+    margin: 8px auto !important;
+  }
+
+  /* Dashboard Board Cards Grid Adjustment: Stack items in a clean single column (one card per row) on Mobile */
+  div[style*="grid"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+  }
+
+  div[style*="boardCard"] {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 240px !important;
   }
 
   /* Filters row */
