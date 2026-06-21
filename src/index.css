@@ -439,7 +439,7 @@ p {
 
   /* Adjust Board container top spacing to prevent header overlap */
   div[style*="top: 76px"] {
-    top: 215px !important; /* Pushed down to clear the taller board header on mobile */
+    top: 115px !important; /* Shift up by 100px (215px -> 115px) */
     padding: 16px !important;
   }
 
