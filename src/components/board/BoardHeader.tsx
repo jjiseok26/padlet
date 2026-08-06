@@ -37,7 +37,8 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
     activeBoardId,
     setActiveBoardId,
     scale,
-    setScale
+    setScale,
+    currentUser
   } = useAuthStore();
 
   // Find currently active board
@@ -161,7 +162,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
       color: randomColor,
       positionX: targetX,
       positionY: targetY,
-      author: isGuestMode ? '' : '관리자',
+      author: isGuestMode ? '' : (currentUser?.username || '교사'),
       password: isGuestMode ? '' : undefined,
       isApproved: true,
       isGuestPost: isGuestMode,

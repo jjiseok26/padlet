@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import mqtt from 'mqtt';
+import {
+  findOrCreatePadletFolder,
+  loadPadletDataFromDrive,
+  savePadletDataToDrive
+} from '../services/googleDriveService';
 
 export type LayoutType = 'grid' | 'wall' | 'canvas' | 'column';
 export type AttachmentType = 'image' | 'video' | 'link' | 'file' | 'none';
@@ -55,8 +60,14 @@ export interface Board {
 
 export interface User {
   username: string;
+  email?: string;
+  picture?: string;
   role: string;
+  googleAccessToken?: string;
+  googleDriveFolderId?: string;
 }
+
+export type DriveSyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
 
 // 1. Board Store Interface (Manual localStorage persist)
 interface BoardState {
@@ -96,9 +107,15 @@ interface AuthState {
   panX: number;
   panY: number;
   scale: number;
+  driveSyncStatus: DriveSyncStatus;
+  lastDriveSyncTime: string | null;
+  driveSyncError: string | null;
 
+  googleLogin: (userData: { name: string; email?: string; picture?: string; accessToken: string }) => Promise<boolean>;
   login: (username: string, password: string) => boolean;
   logout: () => void;
+  syncWithGoogleDrive: () => Promise<boolean>;
+  setDriveSyncStatus: (status: DriveSyncStatus, error?: string | null) => void;
   setActiveBoardId: (boardId: string) => void;
   setPan: (panX: number, panY: number) => void;
   setScale: (scale: number) => void;
@@ -144,6 +161,26 @@ const loadInitialBoardState = () => {
   };
 };
 
+// Debounced auto-sync to Google Drive
+let autoSyncTimeout: any = null;
+
+const triggerAutoDriveSync = () => {
+  const authState = useAuthStore.getState();
+  if (!authState.isAuthenticated || !authState.currentUser?.googleAccessToken) return;
+
+  if (autoSyncTimeout) clearTimeout(autoSyncTimeout);
+
+  useAuthStore.setState({ driveSyncStatus: 'syncing' });
+
+  autoSyncTimeout = setTimeout(async () => {
+    try {
+      await authState.syncWithGoogleDrive();
+    } catch (err: any) {
+      console.error('Auto drive sync failed:', err);
+    }
+  }, 1200);
+};
+
 // Helper to save state directly to localStorage synchronously
 const saveBoardState = (boards: Board[], posts: Post[], adminPassword?: string) => {
   try {
@@ -156,6 +193,7 @@ const saveBoardState = (boards: Board[], posts: Post[], adminPassword?: string) 
       version: 0
     };
     localStorage.setItem('padlet-board-storage-local', JSON.stringify(data));
+    triggerAutoDriveSync();
   } catch (e) {
     console.error('Failed to save board state', e);
   }
@@ -362,13 +400,115 @@ export const useBoardStore = create<BoardState>((set, get) => {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       isAuthenticated: false,
       currentUser: null,
       activeBoardId: 'dashboard',
       panX: 0,
       panY: 0,
       scale: 1.0,
+      driveSyncStatus: 'idle',
+      lastDriveSyncTime: null,
+      driveSyncError: null,
+
+      setDriveSyncStatus: (status, error = null) => {
+        set({ driveSyncStatus: status, driveSyncError: error });
+      },
+
+      googleLogin: async (userData) => {
+        try {
+          set({
+            driveSyncStatus: 'syncing',
+            driveSyncError: null
+          });
+
+          // 1. Find or create 'padlet' folder in Google Drive
+          const folderId = await findOrCreatePadletFolder(userData.accessToken);
+
+          const userObj: User = {
+            username: userData.name,
+            email: userData.email,
+            picture: userData.picture,
+            role: '교사',
+            googleAccessToken: userData.accessToken,
+            googleDriveFolderId: folderId
+          };
+
+          set({
+            isAuthenticated: true,
+            currentUser: userObj
+          });
+
+          // 2. Try loading data from Google Drive padlet/padlet_data.json
+          const driveData = await loadPadletDataFromDrive(userData.accessToken, folderId);
+          if (driveData && driveData.boards && Array.isArray(driveData.boards)) {
+            // Restore from Drive
+            useBoardStore.setState({
+              boards: driveData.boards,
+              posts: driveData.posts
+            });
+            saveBoardState(driveData.boards, driveData.posts);
+          } else {
+            // Sync initial local data to Google Drive
+            const currentBoards = useBoardStore.getState().boards;
+            const currentPosts = useBoardStore.getState().posts;
+            await savePadletDataToDrive(userData.accessToken, folderId, {
+              boards: currentBoards,
+              posts: currentPosts
+            });
+          }
+
+          set({
+            driveSyncStatus: 'synced',
+            lastDriveSyncTime: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+          });
+
+          return true;
+        } catch (err: any) {
+          console.error('Google Drive Login Sync error:', err);
+          set({
+            driveSyncStatus: 'error',
+            driveSyncError: err.message || 'Google Drive 연동 중 오류 발생'
+          });
+          return false;
+        }
+      },
+
+      syncWithGoogleDrive: async () => {
+        const currentUser = get().currentUser;
+        if (!currentUser || !currentUser.googleAccessToken) {
+          return false;
+        }
+
+        try {
+          set({ driveSyncStatus: 'syncing', driveSyncError: null });
+
+          const folderId = currentUser.googleDriveFolderId || (await findOrCreatePadletFolder(currentUser.googleAccessToken));
+          if (!currentUser.googleDriveFolderId) {
+            set({ currentUser: { ...currentUser, googleDriveFolderId: folderId } });
+          }
+
+          const boards = useBoardStore.getState().boards;
+          const posts = useBoardStore.getState().posts.filter(p => !p.isDraft);
+
+          const success = await savePadletDataToDrive(currentUser.googleAccessToken, folderId, { boards, posts });
+
+          if (success) {
+            set({
+              driveSyncStatus: 'synced',
+              lastDriveSyncTime: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+            });
+            return true;
+          } else {
+            set({ driveSyncStatus: 'error', driveSyncError: 'Google Drive 저장 실패' });
+            return false;
+          }
+        } catch (err: any) {
+          console.error('Manual drive sync failed:', err);
+          set({ driveSyncStatus: 'error', driveSyncError: err.message });
+          return false;
+        }
+      },
 
       login: (username, password) => {
         const currentPassword = useBoardStore.getState().adminPassword || 'admin';
@@ -386,7 +526,10 @@ export const useAuthStore = create<AuthState>()(
         set({
           isAuthenticated: false,
           currentUser: null,
-          activeBoardId: 'dashboard'
+          activeBoardId: 'dashboard',
+          driveSyncStatus: 'idle',
+          lastDriveSyncTime: null,
+          driveSyncError: null
         });
       },
 

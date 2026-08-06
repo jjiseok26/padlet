@@ -1,30 +1,103 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../store/useBoardStore';
 import { motion } from 'framer-motion';
-import { Lock, User, LogIn, ShieldAlert, HelpCircle } from 'lucide-react';
+import { ShieldAlert, HelpCircle, HardDrive, Settings, CheckCircle2, RefreshCw } from 'lucide-react';
 import { GuideModal } from '../board/GuideModal';
+import {
+  requestGoogleOAuthToken,
+  getSavedClientId,
+  setSavedClientId
+} from '../../services/googleDriveService';
 
 export const Login: React.FC = () => {
-  const login = useAuthStore(state => state.login);
-  
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const googleLogin = useAuthStore(state => state.googleLogin);
+
+  const [clientIdInput, setClientIdInput] = useState('');
+  const [showConfig, setShowConfig] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [shakeTrigger, setShakeTrigger] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    const success = login(username.trim(), password);
-
-    if (!success) {
-      setError('아이디 또는 비밀번호가 올바르지 않습니다.');
-      // Trigger Framer Motion shake animation
-      setShakeTrigger(true);
-      setTimeout(() => setShakeTrigger(false), 500);
+  useEffect(() => {
+    const saved = getSavedClientId();
+    if (saved) {
+      setClientIdInput(saved);
     }
+  }, []);
+
+  const handleSaveClientId = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavedClientId(clientIdInput.trim());
+    setShowConfig(false);
+    setError('');
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError('');
+    setIsLoading(true);
+
+    const targetClientId = clientIdInput.trim() || getSavedClientId();
+
+    if (!targetClientId) {
+      // Prompt user to enter Client ID or use demo mode
+      setError('Google OAuth Client ID가 설정되지 않았습니다. [Client ID 설정] 또는 [체험용 계정 시작]을 선택해주세요.');
+      setShowConfig(true);
+      setIsLoading(false);
+      triggerShake();
+      return;
+    }
+
+    try {
+      const authResult = await requestGoogleOAuthToken(targetClientId);
+      if (authResult.accessToken) {
+        const userName = authResult.user?.name || '구글 사용자';
+        const userEmail = authResult.user?.email || 'user@gmail.com';
+        const userPicture = authResult.user?.picture || '';
+
+        const success = await googleLogin({
+          name: userName,
+          email: userEmail,
+          picture: userPicture,
+          accessToken: authResult.accessToken
+        });
+
+        if (!success) {
+          setError('Google Drive 연동 초기화 실패. 권한을 확인해주세요.');
+          triggerShake();
+        }
+      }
+    } catch (err: any) {
+      console.error('Google Sign In Error:', err);
+      setError(err.message || 'Google 로그인 중 오류가 발생했습니다.');
+      triggerShake();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDemoSignIn = async () => {
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const demoToken = `demo-token-${Math.random().toString(36).substring(2, 9)}`;
+      await googleLogin({
+        name: '구글 교사 (체험)',
+        email: 'teacher@gmail.com',
+        picture: 'https://lh3.googleusercontent.com/a/default-user',
+        accessToken: demoToken
+      });
+    } catch (err: any) {
+      setError(err.message || '체험 로그인 오류');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const triggerShake = () => {
+    setShakeTrigger(true);
+    setTimeout(() => setShakeTrigger(false), 500);
   };
 
   return (
@@ -86,10 +159,10 @@ export const Login: React.FC = () => {
         {/* Title logo */}
         <div style={styles.logoContainer}>
           <div style={styles.logoIconWrapper}>
-            <Lock size={26} color="var(--color-primary)" />
+            <HardDrive size={28} color="var(--color-primary)" />
           </div>
-          <h2 style={styles.title}>교사 로그인</h2>
-          <p style={styles.subtitle}>캔버스 보드 교사용 제어 시스템</p>
+          <h2 style={styles.title}>Google 로그인</h2>
+          <p style={styles.subtitle}>패들렛 데이터가 구글드라이브 <strong style={{ color: '#818cf8' }}>padlet</strong> 폴더에 자동 동기화됩니다.</p>
         </div>
 
         {/* Error Toast Message */}
@@ -99,48 +172,74 @@ export const Login: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             style={styles.errorBanner}
           >
-            <ShieldAlert size={14} style={{ marginRight: '6px' }} />
+            <ShieldAlert size={14} style={{ marginRight: '6px', flexShrink: 0 }} />
             <span>{error}</span>
           </motion.div>
         )}
 
-        {/* Input Form */}
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>교사 계정 ID</label>
-            <div style={styles.inputWrapper}>
-              <User size={16} style={styles.fieldIcon} />
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="ID를 입력해 주세요"
-                required
-                style={styles.inputField}
-              />
-            </div>
-          </div>
-
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>패스워드</label>
-            <div style={styles.inputWrapper}>
-              <Lock size={16} style={styles.fieldIcon} />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="비밀번호를 입력해 주세요"
-                required
-                style={styles.inputField}
-              />
-            </div>
-          </div>
-
-          <button type="submit" className="button-premium active" style={styles.submitBtn}>
-            <LogIn size={16} />
-            <span>대시보드 접속</span>
+        {/* Google Sign In Button */}
+        <div style={styles.actionContainer}>
+          <button 
+            onClick={handleGoogleSignIn}
+            disabled={isLoading}
+            style={styles.googleBtn}
+            className="google-login-btn"
+          >
+            {isLoading ? (
+              <RefreshCw size={20} className="spin" style={{ marginRight: '10px' }} />
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" style={{ marginRight: '12px', flexShrink: 0 }}>
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+            )}
+            <span style={{ fontSize: '0.95rem', fontWeight: '600' }}>Google 계정으로 로그인</span>
           </button>
-        </form>
+
+          {/* Quick Demo Login Option */}
+          <button
+            onClick={handleDemoSignIn}
+            disabled={isLoading}
+            style={styles.demoBtn}
+            className="button-premium"
+            title="Google OAuth Client ID 설정 없이 구글 드라이브 동기화를 체험합니다."
+          >
+            <CheckCircle2 size={16} color="#818cf8" style={{ marginRight: '8px' }} />
+            <span>원클릭 체험 로그인 (Google Drive 시뮬레이션)</span>
+          </button>
+        </div>
+
+        {/* Client ID Configuration Section Toggle */}
+        <div style={styles.configToggleRow}>
+          <button 
+            type="button" 
+            onClick={() => setShowConfig(!showConfig)}
+            style={styles.configToggleBtn}
+          >
+            <Settings size={14} style={{ marginRight: '6px' }} />
+            <span>{showConfig ? 'Client ID 설정 닫기' : 'Google Cloud Client ID 직접 설정'}</span>
+          </button>
+        </div>
+
+        {showConfig && (
+          <form onSubmit={handleSaveClientId} style={styles.configForm}>
+            <label style={styles.label}>Google OAuth Client ID</label>
+            <div style={styles.inputWrapper}>
+              <input 
+                type="text"
+                value={clientIdInput}
+                onChange={(e) => setClientIdInput(e.target.value)}
+                placeholder="xxxx.apps.googleusercontent.com"
+                style={styles.inputField}
+              />
+            </div>
+            <button type="submit" className="button-premium active" style={{ marginTop: '8px', padding: '8px 16px' }}>
+              Client ID 저장
+            </button>
+          </form>
+        )}
       </motion.div>
 
       {/* Guide Manual Modal */}
@@ -156,7 +255,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#020617', // Extremely deep space dark slate
+    backgroundColor: '#020617',
     position: 'relative',
     overflow: 'hidden',
   },
@@ -182,7 +281,7 @@ const styles: Record<string, React.CSSProperties> = {
     right: '15%',
   },
   loginCard: {
-    width: '380px',
+    width: '400px',
     padding: '36px 30px',
     borderRadius: '24px',
     display: 'flex',
@@ -218,8 +317,9 @@ const styles: Record<string, React.CSSProperties> = {
     letterSpacing: '-0.02em',
   },
   subtitle: {
-    fontSize: '0.8rem',
+    fontSize: '0.825rem',
     color: 'var(--text-muted)',
+    lineHeight: '1.4',
   },
   errorBanner: {
     display: 'flex',
@@ -232,35 +332,66 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '0.775rem',
     fontWeight: '500',
   },
-  form: {
+  actionContainer: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '18px',
+    gap: '12px',
   },
-  inputGroup: {
+  googleBtn: {
+    width: '100%',
+    padding: '14px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
+    color: '#1f2937',
+    border: 'none',
+    borderRadius: '12px',
+    cursor: 'pointer',
+    boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)',
+    transition: 'all 0.2s ease',
+  },
+  demoBtn: {
+    width: '100%',
+    padding: '12px',
+    justifyContent: 'center',
+    borderRadius: '12px',
+    fontSize: '0.825rem',
+  },
+  configToggleRow: {
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  configToggleBtn: {
+    background: 'transparent',
+    border: 'none',
+    color: 'var(--text-muted)',
+    fontSize: '0.75rem',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  configForm: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '6px',
+    gap: '8px',
+    background: 'rgba(0, 0, 0, 0.3)',
+    padding: '16px',
+    borderRadius: '12px',
+    border: '1px solid rgba(255, 255, 255, 0.05)',
   },
   label: {
-    fontSize: '0.75rem',
+    fontSize: '0.725rem',
     fontWeight: '600',
     color: 'var(--text-muted)',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
   },
   inputWrapper: {
     display: 'flex',
     alignItems: 'center',
-    background: 'rgba(0, 0, 0, 0.35)',
-    border: '1px solid rgba(255, 255, 255, 0.08)',
-    borderRadius: '12px',
-    padding: '2px 12px',
-    transition: 'all 0.2s ease',
-  },
-  fieldIcon: {
-    color: 'var(--text-muted)',
-    marginRight: '10px',
+    background: 'rgba(0, 0, 0, 0.4)',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    borderRadius: '8px',
+    padding: '2px 10px',
   },
   inputField: {
     flex: 1,
@@ -268,18 +399,9 @@ const styles: Record<string, React.CSSProperties> = {
     border: 'none',
     outline: 'none',
     color: '#ffffff',
-    fontSize: '0.85rem',
-    padding: '12px 0',
+    fontSize: '0.8rem',
+    padding: '8px 0',
     fontFamily: 'inherit',
-  },
-  submitBtn: {
-    width: '100%',
-    padding: '12px 0',
-    justifyContent: 'center',
-    borderRadius: '12px',
-    fontSize: '0.9rem',
-    fontWeight: 'bold',
-    marginTop: '6px',
   },
   floatingGuideBtn: {
     position: 'absolute',

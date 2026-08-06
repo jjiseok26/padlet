@@ -13,13 +13,15 @@ import {
   X,
   Layers,
   LogOut,
-  Key,
   Share2,
   Search,
   Kanban,
   Upload,
   HelpCircle,
-  Download
+  Download,
+  HardDrive,
+  RefreshCw,
+  User as UserIcon
 } from 'lucide-react';
 import { GuideModal } from '../board/GuideModal';
 
@@ -29,11 +31,17 @@ export const Dashboard: React.FC = () => {
     posts, 
     createBoard, 
     deleteBoard, 
-    changeAdminPassword,
     importBoardData
   } = useBoardStore();
 
-  const { setActiveBoardId, logout } = useAuthStore();
+  const { 
+    currentUser, 
+    setActiveBoardId, 
+    logout, 
+    syncWithGoogleDrive, 
+    driveSyncStatus, 
+    lastDriveSyncTime 
+  } = useAuthStore();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -41,11 +49,8 @@ export const Dashboard: React.FC = () => {
   const [newLayout, setNewLayout] = useState<LayoutType>('canvas');
   const [isGuideOpen, setIsGuideOpen] = useState(false);
 
-  // Password change & Toast state
-  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const [newPasswordInput, setNewPasswordInput] = useState('');
-  const [confirmPasswordInput, setConfirmPasswordInput] = useState('');
-  const [passwordError, setPasswordError] = useState('');
+  // Drive Info Modal & Toast state
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [sortBy, setSortBy] = useState<'latest' | 'oldest' | 'title'>('latest');
   const [searchQuery, setSearchQuery] = useState('');
@@ -119,24 +124,6 @@ export const Dashboard: React.FC = () => {
     setTimeout(() => {
       setToastMessage('');
     }, 2500);
-  };
-
-  const handlePasswordChangeSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPasswordInput.trim()) {
-      setPasswordError('새 비밀번호를 입력해주세요.');
-      return;
-    }
-    if (newPasswordInput !== confirmPasswordInput) {
-      setPasswordError('비밀번호가 일치하지 않습니다.');
-      return;
-    }
-    changeAdminPassword(newPasswordInput.trim());
-    setNewPasswordInput('');
-    setConfirmPasswordInput('');
-    setPasswordError('');
-    setIsPasswordModalOpen(false);
-    showToast('교사 비밀번호가 성공적으로 변경되었습니다!');
   };
 
   const handleCreateBoardSubmit = (e: React.FormEvent) => {
@@ -220,10 +207,58 @@ export const Dashboard: React.FC = () => {
       <div style={styles.dashboardContainer}>
         {/* Header */}
         <header id="teacher-dashboard-header" style={styles.header}>
-          <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <h1 style={styles.title}>아이디어 보드</h1>
+            
+            {/* Google Profile & Drive Sync Badge */}
+            <div 
+              onClick={() => setIsAccountModalOpen(true)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                padding: '6px 12px',
+                borderRadius: '12px',
+                cursor: 'pointer'
+              }}
+              title="Google 계정 및 Drive 동기화 정보 확인"
+            >
+              {currentUser?.picture ? (
+                <img src={currentUser.picture} alt="profile" style={{ width: 22, height: 22, borderRadius: '50%' }} />
+              ) : (
+                <UserIcon size={18} color="#818cf8" />
+              )}
+              <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                <span style={{ fontSize: '0.775rem', fontWeight: 'bold', color: '#ffffff', lineHeight: 1.2 }}>
+                  {currentUser?.username || '구글 사용자'}
+                </span>
+                <span style={{ fontSize: '0.65rem', color: '#818cf8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <HardDrive size={10} /> padlet 폴더 연동됨
+                </span>
+              </div>
+            </div>
           </div>
+
           <div className="button-container-mobile" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            {/* Manual Google Drive Sync Button */}
+            <button 
+              className="button-premium active"
+              onClick={async () => {
+                const ok = await syncWithGoogleDrive();
+                if (ok) {
+                  showToast('Google Drive (padlet/padlet_data.json) 동기화 완료!');
+                } else {
+                  showToast('Google Drive 동기화 실패');
+                }
+              }}
+              title="Google Drive에 즉시 동기화 (padlet/padlet_data.json)"
+            >
+              <RefreshCw size={14} className={driveSyncStatus === 'syncing' ? 'spin' : ''} color={driveSyncStatus === 'synced' ? '#34d399' : '#ffffff'} />
+              <span>{driveSyncStatus === 'syncing' ? '드라이브 저장중...' : 'Drive 동기화'}</span>
+            </button>
+
             {/* Hidden File Input */}
             <input 
               type="file" 
@@ -252,11 +287,11 @@ export const Dashboard: React.FC = () => {
             </button>
             <button 
               className="button-premium" 
-              onClick={() => setIsPasswordModalOpen(true)}
-              title="비밀번호 변경"
+              onClick={() => setIsAccountModalOpen(true)}
+              title="계정 정보 및 Google Drive 상태"
             >
-              <Key size={16} />
-              <span>암호 변경</span>
+              <HardDrive size={16} />
+              <span>계정 정보</span>
             </button>
             <button 
               className="button-premium" 
@@ -478,61 +513,65 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* PASSWORD CHANGE MODAL */}
-      {isPasswordModalOpen && (
+      {/* GOOGLE ACCOUNT & DRIVE INFO MODAL */}
+      {isAccountModalOpen && (
         <div style={styles.modalBackdrop}>
           <div className="glass-panel modal-responsive" style={styles.modalContent}>
             <div style={styles.modalHeader}>
-              <h2>교사 암호 변경</h2>
-              <button onClick={() => { setIsPasswordModalOpen(false); setPasswordError(''); }} style={styles.closeBtn}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <HardDrive size={20} color="var(--color-primary)" />
+                <h2>Google 계정 & Drive 연동 정보</h2>
+              </div>
+              <button onClick={() => setIsAccountModalOpen(false)} style={styles.closeBtn}>
                 <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handlePasswordChangeSubmit} style={styles.modalForm}>
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>새 비밀번호</label>
-                <input 
-                  type="password"
-                  value={newPasswordInput}
-                  onChange={(e) => setNewPasswordInput(e.target.value)}
-                  placeholder="새 비밀번호 입력"
-                  style={styles.formInput}
-                  required
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>비밀번호 확인</label>
-                <input 
-                  type="password"
-                  value={confirmPasswordInput}
-                  onChange={(e) => setConfirmPasswordInput(e.target.value)}
-                  placeholder="비밀번호 확인 입력"
-                  style={styles.formInput}
-                  required
-                />
-              </div>
-
-              {passwordError && (
-                <div style={styles.errorText}>
-                  {passwordError}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '10px 0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '12px' }}>
+                {currentUser?.picture ? (
+                  <img src={currentUser.picture} alt="Avatar" style={{ width: 44, height: 44, borderRadius: '50%' }} />
+                ) : (
+                  <UserIcon size={32} color="#818cf8" />
+                )}
+                <div>
+                  <div style={{ color: '#ffffff', fontWeight: 'bold', fontSize: '0.95rem' }}>{currentUser?.username}</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{currentUser?.email || 'Google 계정 로그인'}</div>
                 </div>
-              )}
-
-              <div style={styles.modalActions}>
-                <button 
-                  type="button" 
-                  onClick={() => { setIsPasswordModalOpen(false); setPasswordError(''); }} 
-                  style={styles.cancelBtn}
-                >
-                  취소
-                </button>
-                <button type="submit" className="button-premium active" style={styles.submitBtn}>
-                  변경 완료
-                </button>
               </div>
-            </form>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>동기화 위치:</span>
+                  <span style={{ color: '#818cf8', fontWeight: 'bold' }}>Google Drive / padlet / padlet_data.json</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>현재 동기화 상태:</span>
+                  <span style={{ color: driveSyncStatus === 'synced' ? '#34d399' : driveSyncStatus === 'syncing' ? '#fbbf24' : '#f87171', fontWeight: 'bold' }}>
+                    {driveSyncStatus === 'synced' ? '✓ 동기화 완료' : driveSyncStatus === 'syncing' ? '⟳ 동기화 중...' : '오류'}
+                  </span>
+                </div>
+                {lastDriveSyncTime && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>최근 동기화 시각:</span>
+                    <span style={{ color: '#ffffff' }}>{lastDriveSyncTime}</span>
+                  </div>
+                )}
+              </div>
+
+              <button 
+                onClick={async () => {
+                  const ok = await syncWithGoogleDrive();
+                  if (ok) showToast('Google Drive 동기화 완료!');
+                  else showToast('Google Drive 동기화 실패');
+                }}
+                className="button-premium active"
+                style={{ padding: '12px', justifyContent: 'center' }}
+              >
+                <RefreshCw size={16} className={driveSyncStatus === 'syncing' ? 'spin' : ''} />
+                <span>지금 구글 드라이브에 동기화하기</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
