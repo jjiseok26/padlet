@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useBoardStore, useAuthStore } from './store/useBoardStore';
+import { useSandboxStore } from './store/useSandboxStore';
 import { Login } from './components/admin/Login';
 import { Dashboard } from './components/admin/Dashboard';
+import { SandboxWorkspace } from './components/sandbox/SandboxWorkspace';
 import { BoardHeader } from './components/board/BoardHeader';
 import { BoardContainer } from './components/board/BoardContainer';
 import { WallpaperPicker } from './components/board/WallpaperPicker';
@@ -38,12 +40,15 @@ const isLightColor = (colorStr: string): boolean => {
 const App: React.FC = () => {
   const { isAuthenticated, activeBoardId, setActiveBoardId } = useAuthStore();
   const { boards, importBoardData } = useBoardStore();
+  const { activeSandboxId, setActiveSandboxId } = useSandboxStore();
   const [isWallpaperOpen, setIsWallpaperOpen] = useState(false);
 
   // 1. Synchronously parse URL parameter using TextDecoder for robust unicode support
   const params = new URLSearchParams(window.location.search);
   const shareDataEncoded = params.get('share');
   const sharedBoardId = params.get('board');
+  const sharedSandboxId = params.get('sandbox');
+  const [guestSandboxId, setGuestSandboxId] = useState<string | null>(sharedSandboxId);
 
   let sharedBoardData: any = null;
   if (shareDataEncoded) {
@@ -93,11 +98,11 @@ const App: React.FC = () => {
       }
     }
     // Clean up the URL query parameters to avoid stale imports on browser reload
-    if (shareDataEncoded || sharedBoardId) {
+    if (shareDataEncoded || sharedBoardId || sharedSandboxId) {
       const newUrl = window.location.origin + window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
     }
-  }, [shareDataEncoded, sharedBoardId, boards, importBoardData]);
+  }, [shareDataEncoded, sharedBoardId, sharedSandboxId, boards, importBoardData]);
 
   // 4. Asynchronously align store activeBoardId with target shared link id
   useEffect(() => {
@@ -124,7 +129,21 @@ const App: React.FC = () => {
         backgroundColor: useDarkTheme ? '#030712' : '#f0f7fb',
       }}
     >
-      {isGuestView ? (
+      {guestSandboxId && !isAuthenticated ? (
+        /* Students join a collaborative canvas straight from the share link */
+        <SandboxWorkspace
+          sandboxId={guestSandboxId}
+          isGuestMode={true}
+          onExit={() => setGuestSandboxId(null)}
+        />
+      ) : isAuthenticated && activeSandboxId ? (
+        /* Teacher-owned collaborative canvas */
+        <SandboxWorkspace
+          sandboxId={activeSandboxId}
+          isGuestMode={false}
+          onExit={() => setActiveSandboxId(null)}
+        />
+      ) : isGuestView ? (
         /* Render Shared Board Workspace for Guest (Bypass Login) */
         <>
           <BoardHeader 

@@ -24,6 +24,7 @@ import {
   User as UserIcon
 } from 'lucide-react';
 import { GuideModal } from '../board/GuideModal';
+import { SandboxSection } from '../sandbox/SandboxSection';
 
 export const Dashboard: React.FC = () => {
   const { 
@@ -324,6 +325,9 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
         </header>
+
+        {/* Collaborative Canvases (sandbox) */}
+        <SandboxSection onToast={showToast} />
 
         {/* Filter & Search Controls Row */}
         <div style={styles.filterRow}>

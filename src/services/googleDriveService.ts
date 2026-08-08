@@ -186,7 +186,7 @@ export const findPadletDataFile = async (accessToken: string, folderId: string):
 export const loadPadletDataFromDrive = async (
   accessToken: string,
   folderId: string
-): Promise<{ boards: any[]; posts: any[] } | null> => {
+): Promise<{ boards: any[]; posts: any[]; [key: string]: any } | null> => {
   const fileId = await findPadletDataFile(accessToken, folderId);
   if (!fileId) return null;
 
@@ -201,10 +201,7 @@ export const loadPadletDataFromDrive = async (
 
   const json = await res.json();
   if (json && Array.isArray(json.boards) && Array.isArray(json.posts)) {
-    return {
-      boards: json.boards,
-      posts: json.posts,
-    };
+    return json;
   }
   return null;
 };
@@ -215,7 +212,7 @@ export const loadPadletDataFromDrive = async (
 export const savePadletDataToDrive = async (
   accessToken: string,
   folderId: string,
-  data: { boards: any[]; posts: any[] }
+  data: { boards: any[]; posts: any[]; [key: string]: any }
 ): Promise<boolean> => {
   const fileId = await findPadletDataFile(accessToken, folderId);
   const jsonContent = JSON.stringify(data, null, 2);

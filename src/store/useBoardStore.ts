@@ -7,6 +7,7 @@ import {
   savePadletDataToDrive
 } from '../services/googleDriveService';
 import { hasMyReaction, setMyReaction, loadMyReactions, saveMyReactions } from '../utils/cardHelpers';
+import { collectDriveExtra, applyDriveExtra } from '../services/driveBridge';
 
 export type LayoutType = 'grid' | 'wall' | 'canvas' | 'column';
 export type AttachmentType = 'image' | 'video' | 'link' | 'file' | 'none';
@@ -478,13 +479,15 @@ export const useAuthStore = create<AuthState>()(
               posts: driveData.posts
             });
             saveBoardState(driveData.boards, driveData.posts);
+            applyDriveExtra(driveData as unknown as Record<string, unknown>);
           } else {
             // Sync initial local data to Google Drive
             const currentBoards = useBoardStore.getState().boards;
             const currentPosts = useBoardStore.getState().posts;
             await savePadletDataToDrive(userData.accessToken, folderId, {
               boards: currentBoards,
-              posts: currentPosts
+              posts: currentPosts,
+              ...collectDriveExtra(),
             });
           }
 
@@ -521,7 +524,11 @@ export const useAuthStore = create<AuthState>()(
           const boards = useBoardStore.getState().boards;
           const posts = useBoardStore.getState().posts.filter(p => !p.isDraft);
 
-          const success = await savePadletDataToDrive(currentUser.googleAccessToken, folderId, { boards, posts });
+          const success = await savePadletDataToDrive(currentUser.googleAccessToken, folderId, {
+            boards,
+            posts,
+            ...collectDriveExtra(),
+          });
 
           if (success) {
             set({
@@ -579,6 +586,48 @@ const topic = `antigravity/padlet/v1/sync/${encodeURIComponent(hostName).replace
 let isSyncingFromNetwork = false;
 let mqttClient: any = null;
 
+// --- Shared MQTT bus so other features (sandbox rooms) can reuse one connection ---
+type TopicHandler = (payload: any) => void;
+const extraTopicHandlers = new Map<string, Set<TopicHandler>>();
+
+export const mqttClientId = clientId;
+export const mqttHostKey = encodeURIComponent(hostName).replace(/%/g, '_');
+
+export const mqttSubscribe = (targetTopic: string, handler: TopicHandler): (() => void) => {
+  let handlers = extraTopicHandlers.get(targetTopic);
+  if (!handlers) {
+    handlers = new Set();
+    extraTopicHandlers.set(targetTopic, handlers);
+    mqttClient?.subscribe(targetTopic, (err: any) => {
+      if (err) console.error('[MQTT] subscribe failed:', targetTopic, err);
+    });
+  }
+  handlers.add(handler);
+
+  return () => {
+    const set = extraTopicHandlers.get(targetTopic);
+    if (!set) return;
+    set.delete(handler);
+    if (set.size === 0) {
+      extraTopicHandlers.delete(targetTopic);
+      mqttClient?.unsubscribe(targetTopic);
+    }
+  };
+};
+
+export const mqttPublish = (targetTopic: string, payload: unknown): boolean => {
+  if (!mqttClient || !mqttClient.connected) return false;
+  try {
+    mqttClient.publish(targetTopic, JSON.stringify(payload), { qos: 0 });
+    return true;
+  } catch (e) {
+    console.error('[MQTT] publish failed:', targetTopic, e);
+    return false;
+  }
+};
+
+export const isMqttConnected = (): boolean => Boolean(mqttClient?.connected);
+
 export const initMQTT = () => {
   if (typeof window === 'undefined') return;
   if (mqttClient) return;
@@ -616,10 +665,33 @@ export const initMQTT = () => {
           console.error('[MQTT] Subscription failed:', err);
         }
       });
+      // Restore feature topics (sandbox rooms) after a reconnect
+      extraTopicHandlers.forEach((_handlers, extraTopic) => {
+        mqttClient.subscribe(extraTopic);
+      });
     });
 
     mqttClient.on('message', (receivedTopic: string, message: any) => {
-      if (receivedTopic !== topic) return;
+      if (receivedTopic !== topic) {
+        // Route other topics (e.g. sandbox rooms) to their subscribers
+        const handlers = extraTopicHandlers.get(receivedTopic);
+        if (handlers) {
+          let parsed: any = null;
+          try {
+            parsed = JSON.parse(message.toString());
+          } catch {
+            return;
+          }
+          handlers.forEach((fn) => {
+            try {
+              fn(parsed);
+            } catch (e) {
+              console.error('[MQTT] topic handler failed', e);
+            }
+          });
+        }
+        return;
+      }
       try {
         const payload = JSON.parse(message.toString());
         if (payload.senderId === clientId) return; // Ignore own messages
