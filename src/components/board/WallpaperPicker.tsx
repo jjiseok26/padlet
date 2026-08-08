@@ -10,40 +10,36 @@ interface WallpaperPickerProps {
 
 const PRESETS = {
   gradients: [
-    { name: '다크 인디고', value: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)' },
-    { name: '딥 퍼플', value: 'linear-gradient(135deg, #180828 0%, #0c0214 100%)' },
-    { name: '포레스트 에메랄드', value: 'linear-gradient(135deg, #022c22 0%, #064e3b 100%)' },
-    { name: '심해 티어', value: 'linear-gradient(135deg, #1e3a8a 0%, #0d9488 100%)' },
-    { name: '버건디 나이트', value: 'linear-gradient(135deg, #310818 0%, #110006 100%)' },
-    { name: '미스틱 오로라', value: 'linear-gradient(135deg, #581c87 0%, #b5179e 100%)' },
+    { name: '블루 스카이 (밝음)', value: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)' },
+    { name: '민트 프레시 (밝음)', value: 'linear-gradient(135deg, #d1fae5 0%, #a5f3fc 100%)' },
     { name: '소프트 코랄 (밝음)', value: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)' },
     { name: '오렌지 드림 (밝음)', value: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)' },
-    { name: '블루 스카이 (밝음)', value: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)' },
-    { name: '민트 프레시 (밝음)', value: 'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)' },
     { name: '레몬 셔벗 (밝음)', value: 'linear-gradient(135deg, #fffde4 0%, #ffe066 100%)' },
-    { name: '핑크 라벤더 (밝음)', value: 'linear-gradient(135deg, #ffc0cb 0%, #e6e6fa 100%)' },
     { name: '밝은 파스텔 그린 (밝음)', value: 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)' },
-    { name: '코튼 캔디 (밝음)', value: 'linear-gradient(135deg, #ff9a9e 0%, #a1c4fd 100%)' }
+    { name: '코튼 캔디 (밝음)', value: 'linear-gradient(135deg, #ff9a9e 0%, #a1c4fd 100%)' },
+    { name: '핑크 라벤더 (밝음)', value: 'linear-gradient(135deg, #ffc0cb 0%, #e6e6fa 100%)' },
+    { name: '포레스트 에메랄드', value: 'linear-gradient(135deg, #022c22 0%, #064e3b 100%)' },
+    { name: '심해 티어', value: 'linear-gradient(135deg, #1e3a8a 0%, #0d9488 100%)' },
+    { name: '다크 인디고', value: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)' },
+    { name: '버건디 나이트', value: 'linear-gradient(135deg, #310818 0%, #110006 100%)' },
   ],
   solids: [
-    { name: 'Ink Black', value: '#030712' },
-    { name: 'Charcoal', value: '#111827' },
-    { name: 'Slate Gray', value: '#1f2937' },
-    { name: 'Deep Navy', value: '#0f172a' },
-    { name: 'Cream White (밝음)', value: '#f4f4f0' },
+    { name: 'Pure White (밝음)', value: '#ffffff' },
     { name: 'Soft Gray (밝음)', value: '#f3f4f6' },
     { name: 'Mint White (밝음)', value: '#edfcf9' },
-    { name: 'Lavender Ice (밝음)', value: '#f5f3ff' },
-    { name: 'Pure White (밝음)', value: '#ffffff' },
     { name: 'Warm Sand (밝음)', value: '#fdfbf7' },
     { name: 'Pale Pink (밝음)', value: '#fff0f5' },
-    { name: 'Pastel Yellow (밝음)', value: '#fefce8' }
+    { name: 'Pastel Yellow (밝음)', value: '#fefce8' },
+    { name: 'Cream White (밝음)', value: '#f4f4f0' },
+    { name: 'Ink Black', value: '#030712' },
+    { name: 'Charcoal', value: '#111827' },
+    { name: 'Deep Navy', value: '#0f172a' },
   ],
   patterns: [
+    { name: 'Aurora Glow', value: 'url("https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=350&q=80")' },
+    { name: 'Emerald Wave', value: 'url("https://images.unsplash.com/photo-1618005198143-d3663a8a3069?auto=format&fit=crop&w=350&q=80")' },
     { name: 'Abstract Cyber', value: 'url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=350&q=80")' },
     { name: 'Liquid Purple', value: 'url("https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=350&q=80")' },
-    { name: 'Emerald Wave', value: 'url("https://images.unsplash.com/photo-1618005198143-d3663a8a3069?auto=format&fit=crop&w=350&q=80")' },
-    { name: 'Aurora Glow', value: 'url("https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=350&q=80")' }
   ]
 };
 
@@ -268,8 +264,8 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '24px',
     display: 'flex',
     flexDirection: 'column',
-    borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
-    boxShadow: '-10px 0 30px rgba(0, 0, 0, 0.5)',
+    borderLeft: '1px solid var(--glass-border)',
+    boxShadow: '-10px 0 30px rgba(22, 50, 74, 0.12)',
   },
   panelHeader: {
     display: 'flex',

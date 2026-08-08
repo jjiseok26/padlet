@@ -57,12 +57,16 @@ export const Dashboard: React.FC = () => {
 
   // Curated premium wallpaper options for new boards
   const wallpaperPresets = [
-    { name: '다크 인디고', value: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)' },
-    { name: '딥 퍼플', value: 'linear-gradient(135deg, #180828 0%, #0c0214 100%)' },
-    { name: '포레스트 에메랄드', value: 'linear-gradient(135deg, #022c22 0%, #064e3b 100%)' },
+    { name: '블루 스카이 (밝음)', value: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)' },
+    { name: '민트 프레시 (밝음)', value: 'linear-gradient(135deg, #d1fae5 0%, #a5f3fc 100%)' },
+    { name: '소프트 코랄 (밝음)', value: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)' },
+    { name: '레몬 셔벗 (밝음)', value: 'linear-gradient(135deg, #fffde4 0%, #ffe066 100%)' },
+    { name: '밝은 파스텔 그린 (밝음)', value: 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)' },
+    { name: '코튼 캔디 (밝음)', value: 'linear-gradient(135deg, #ff9a9e 0%, #a1c4fd 100%)' },
+    { name: 'Mint White (밝음)', value: '#edfcf9' },
+    { name: 'Pure White (밝음)', value: '#ffffff' },
     { name: '심해 티어', value: 'linear-gradient(135deg, #1e3a8a 0%, #0d9488 100%)' },
-    { name: '버건디 나이트', value: 'linear-gradient(135deg, #310818 0%, #110006 100%)' },
-    { name: '미스틱 오로라', value: 'linear-gradient(135deg, #581c87 0%, #b5179e 100%)' },
+    { name: '포레스트 에메랄드', value: 'linear-gradient(135deg, #022c22 0%, #064e3b 100%)' },
     { name: '딥 Navy', value: '#0f172a' },
     { name: '인크 Black', value: '#030712' }
   ];
@@ -217,8 +221,8 @@ export const Dashboard: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                background: 'rgba(255, 255, 255, 0.7)',
+                border: '1px solid var(--glass-border)',
                 padding: '6px 12px',
                 borderRadius: '12px',
                 cursor: 'pointer'
@@ -228,13 +232,13 @@ export const Dashboard: React.FC = () => {
               {currentUser?.picture ? (
                 <img src={currentUser.picture} alt="profile" style={{ width: 22, height: 22, borderRadius: '50%' }} />
               ) : (
-                <UserIcon size={18} color="#818cf8" />
+                <UserIcon size={18} color="var(--color-primary)" />
               )}
               <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
-                <span style={{ fontSize: '0.775rem', fontWeight: 'bold', color: '#ffffff', lineHeight: 1.2 }}>
+                <span style={{ fontSize: '0.775rem', fontWeight: 'bold', color: 'var(--text-main)', lineHeight: 1.2 }}>
                   {currentUser?.username || '구글 사용자'}
                 </span>
-                <span style={{ fontSize: '0.65rem', color: '#818cf8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '0.65rem', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <HardDrive size={10} /> padlet 폴더 연동됨
                 </span>
               </div>
@@ -255,7 +259,7 @@ export const Dashboard: React.FC = () => {
               }}
               title="Google Drive에 즉시 동기화 (padlet/padlet_data.json)"
             >
-              <RefreshCw size={14} className={driveSyncStatus === 'syncing' ? 'spin' : ''} color={driveSyncStatus === 'synced' ? '#34d399' : '#ffffff'} />
+              <RefreshCw size={14} className={driveSyncStatus === 'syncing' ? 'spin' : ''} color={driveSyncStatus === 'synced' ? '#059669' : '#ffffff'} />
               <span>{driveSyncStatus === 'syncing' ? '드라이브 저장중...' : 'Drive 동기화'}</span>
             </button>
 
@@ -307,8 +311,8 @@ export const Dashboard: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              background: 'rgba(255, 255, 255, 0.7)',
+              border: '1px solid var(--glass-border)',
               padding: '8px 12px',
               borderRadius: '10px',
               fontSize: '0.8rem',
@@ -316,7 +320,7 @@ export const Dashboard: React.FC = () => {
               fontWeight: '500',
             }}>
               <FolderHeart size={14} color="var(--color-primary)" />
-              <span>전체 보드: <strong style={{ color: '#ffffff' }}>{boards.length}</strong>개</span>
+              <span>전체 보드: <strong style={{ color: 'var(--text-main)' }}>{boards.length}</strong>개</span>
             </div>
           </div>
         </header>
@@ -459,8 +463,8 @@ export const Dashboard: React.FC = () => {
                         }
                       }}
                       style={{
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        background: 'var(--color-primary-soft)',
+                        border: '1px solid var(--glass-border)',
                         borderRadius: '8px',
                         padding: '8px',
                         color: 'var(--text-main)',
@@ -528,22 +532,22 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '10px 0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(13, 148, 136, 0.06)', padding: '12px', borderRadius: '12px' }}>
                 {currentUser?.picture ? (
                   <img src={currentUser.picture} alt="Avatar" style={{ width: 44, height: 44, borderRadius: '50%' }} />
                 ) : (
-                  <UserIcon size={32} color="#818cf8" />
+                  <UserIcon size={32} color="var(--color-primary)" />
                 )}
                 <div>
-                  <div style={{ color: '#ffffff', fontWeight: 'bold', fontSize: '0.95rem' }}>{currentUser?.username}</div>
+                  <div style={{ color: 'var(--text-main)', fontWeight: 'bold', fontSize: '0.95rem' }}>{currentUser?.username}</div>
                   <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{currentUser?.email || 'Google 계정 로그인'}</div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'rgba(15, 55, 80, 0.04)', padding: '14px', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
                   <span style={{ color: 'var(--text-muted)' }}>동기화 위치:</span>
-                  <span style={{ color: '#818cf8', fontWeight: 'bold' }}>Google Drive / padlet / padlet_data.json</span>
+                  <span style={{ color: 'var(--color-primary)', fontWeight: 'bold' }}>Google Drive / padlet / padlet_data.json</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
                   <span style={{ color: 'var(--text-muted)' }}>현재 동기화 상태:</span>
@@ -554,7 +558,7 @@ export const Dashboard: React.FC = () => {
                 {lastDriveSyncTime && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
                     <span style={{ color: 'var(--text-muted)' }}>최근 동기화 시각:</span>
-                    <span style={{ color: '#ffffff' }}>{lastDriveSyncTime}</span>
+                    <span style={{ color: 'var(--text-main)' }}>{lastDriveSyncTime}</span>
                   </div>
                 )}
               </div>
@@ -626,7 +630,7 @@ export const Dashboard: React.FC = () => {
                     className="layout-picker-btn"
                     style={{ 
                       ...styles.layoutRadioBtn,
-                      border: newLayout === 'canvas' ? '1px solid var(--color-primary)' : '1px solid rgba(255,255,255,0.08)',
+                      border: newLayout === 'canvas' ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)',
                       backgroundColor: newLayout === 'canvas' ? 'rgba(129,140,248,0.1)' : 'transparent'
                     }}
                   >
@@ -639,7 +643,7 @@ export const Dashboard: React.FC = () => {
                     className="layout-picker-btn"
                     style={{ 
                       ...styles.layoutRadioBtn,
-                      border: newLayout === 'grid' ? '1px solid var(--color-primary)' : '1px solid rgba(255,255,255,0.08)',
+                      border: newLayout === 'grid' ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)',
                       backgroundColor: newLayout === 'grid' ? 'rgba(129,140,248,0.1)' : 'transparent'
                     }}
                   >
@@ -652,7 +656,7 @@ export const Dashboard: React.FC = () => {
                     className="layout-picker-btn"
                     style={{ 
                       ...styles.layoutRadioBtn,
-                      border: newLayout === 'wall' ? '1px solid var(--color-primary)' : '1px solid rgba(255,255,255,0.08)',
+                      border: newLayout === 'wall' ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)',
                       backgroundColor: newLayout === 'wall' ? 'rgba(129,140,248,0.1)' : 'transparent'
                     }}
                   >
@@ -665,7 +669,7 @@ export const Dashboard: React.FC = () => {
                     className="layout-picker-btn"
                     style={{ 
                       ...styles.layoutRadioBtn,
-                      border: newLayout === 'column' ? '1px solid var(--color-primary)' : '1px solid rgba(255,255,255,0.08)',
+                      border: newLayout === 'column' ? '1px solid var(--color-primary)' : '1px solid var(--glass-border)',
                       backgroundColor: newLayout === 'column' ? 'rgba(129,140,248,0.1)' : 'transparent'
                     }}
                   >
@@ -687,7 +691,7 @@ export const Dashboard: React.FC = () => {
                       style={{
                         ...styles.colorPresetDot,
                         background: preset.value,
-                        border: selectedWallpaper === preset.value ? '2px solid #ffffff' : '1px solid rgba(255,255,255,0.2)'
+                        border: selectedWallpaper === preset.value ? '2px solid var(--color-primary)' : '1px solid var(--glass-border)'
                       }}
                       title={preset.name}
                     />
@@ -733,8 +737,8 @@ const styles: Record<string, React.CSSProperties> = {
   searchContainer: {
     display: 'flex',
     alignItems: 'center',
-    background: 'rgba(255, 255, 255, 0.03)',
-    border: '1px solid rgba(255, 255, 255, 0.06)',
+    background: 'rgba(255, 255, 255, 0.75)',
+    border: '1px solid var(--glass-border)',
     borderRadius: '12px',
     padding: '6px 12px',
     width: '280px',
@@ -749,7 +753,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'transparent',
     border: 'none',
     outline: 'none',
-    color: '#ffffff',
+    color: 'var(--text-main)',
     fontSize: '0.825rem',
     width: '100%',
     padding: '2px 18px 2px 0',
@@ -775,12 +779,12 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '40px 20px',
     textAlign: 'center',
     minHeight: '220px',
-    background: 'rgba(255, 255, 255, 0.01)',
+    background: 'rgba(255, 255, 255, 0.65)',
   },
   noResultsTitle: {
     fontSize: '0.95rem',
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: 'var(--text-main)',
     marginBottom: '4px',
   },
   noResultsDesc: {
@@ -802,8 +806,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   sortOptions: {
     display: 'flex',
-    background: 'rgba(255, 255, 255, 0.03)',
-    border: '1px solid rgba(255, 255, 255, 0.06)',
+    background: 'rgba(255, 255, 255, 0.75)',
+    border: '1px solid var(--glass-border)',
     borderRadius: '10px',
     padding: '2px',
   },
@@ -819,14 +823,14 @@ const styles: Record<string, React.CSSProperties> = {
   },
   sortTabActive: {
     background: 'var(--color-primary)',
-    color: '#030712',
+    color: '#ffffff',
     fontWeight: 'bold',
   },
   dashboardViewport: {
     width: '100%',
     height: '100%',
     overflowY: 'auto',
-    backgroundColor: '#030712',
+    backgroundColor: 'transparent',
     padding: '40px 24px',
   },
   dashboardContainer: {
@@ -842,13 +846,13 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'flex-start',
     justifyContent: 'flex-start',
     gap: '16px',
-    borderBottom: '1px solid rgba(255,255,255,0.05)',
+    borderBottom: '1px solid var(--glass-border)',
     paddingBottom: '20px',
   },
   title: {
     fontSize: '1.8rem',
     fontWeight: '700',
-    background: 'linear-gradient(to right, #ffffff, #93c5fd, #c084fc)',
+    background: 'linear-gradient(120deg, #0f766e 0%, #0369a1 55%, #0ea5e9 100%)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
   },
@@ -875,7 +879,7 @@ const styles: Record<string, React.CSSProperties> = {
   statNum: {
     fontSize: '1.25rem',
     fontWeight: '700',
-    color: '#ffffff',
+    color: 'var(--text-main)',
   },
   statLabel: {
     fontSize: '0.75rem',
@@ -884,7 +888,7 @@ const styles: Record<string, React.CSSProperties> = {
   verticalDivider: {
     width: '1px',
     height: '32px',
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'var(--glass-border)',
   },
   statWelcome: {
     flex: 1,
@@ -908,7 +912,7 @@ const styles: Record<string, React.CSSProperties> = {
   cardThumbnail: {
     height: '90px',
     position: 'relative',
-    borderBottom: '1px solid rgba(255,255,255,0.05)',
+    borderBottom: '1px solid var(--glass-border)',
   },
   badgeOverlay: {
     position: 'absolute',
@@ -923,10 +927,10 @@ const styles: Record<string, React.CSSProperties> = {
     backdropFilter: 'blur(3px)',
     fontSize: '0.65rem',
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: 'var(--text-main)',
     padding: '4px 8px',
     borderRadius: '6px',
-    border: '1px solid rgba(255,255,255,0.1)',
+    border: '1px solid var(--glass-border)',
   },
   cardInfo: {
     padding: '16px',
@@ -938,7 +942,7 @@ const styles: Record<string, React.CSSProperties> = {
   boardTitle: {
     fontSize: '0.975rem',
     fontWeight: '600',
-    color: '#ffffff',
+    color: 'var(--text-main)',
   },
   boardDesc: {
     fontSize: '0.8rem',
@@ -966,15 +970,15 @@ const styles: Record<string, React.CSSProperties> = {
   cardFooter: {
     padding: '12px 16px',
     background: 'rgba(0,0,0,0.15)',
-    borderTop: '1px solid rgba(255,255,255,0.05)',
+    borderTop: '1px solid var(--glass-border)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   quickLayoutGroup: {
     display: 'flex',
-    background: 'rgba(255,255,255,0.03)',
-    border: '1px solid rgba(255,255,255,0.06)',
+    background: 'rgba(255, 255, 255, 0.8)',
+    border: '1px solid var(--glass-border)',
     borderRadius: '8px',
     padding: '2px',
     gap: '2px',
@@ -1008,7 +1012,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   openBoardBtn: {
     background: 'var(--color-primary)',
-    color: '#030712',
+    color: '#ffffff',
     border: 'none',
     borderRadius: '8px',
     padding: '6px 12px',
@@ -1020,7 +1024,7 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   addPlaceholderCard: {
-    border: '2px dashed rgba(255,255,255,0.15)',
+    border: '2px dashed rgba(15, 55, 80, 0.18)',
     background: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
@@ -1034,12 +1038,12 @@ const styles: Record<string, React.CSSProperties> = {
     width: '56px',
     height: '56px',
     borderRadius: '50%',
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: 'rgba(255,255,255,0.7)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: '16px',
-    border: '1px solid rgba(255,255,255,0.06)',
+    border: '1px solid var(--glass-border)',
   },
   addPlaceholderTitle: {
     fontSize: '0.95rem',
@@ -1104,10 +1108,10 @@ const styles: Record<string, React.CSSProperties> = {
     letterSpacing: '0.05em',
   },
   formInput: {
-    background: 'rgba(0,0,0,0.3)',
-    border: '1px solid rgba(255,255,255,0.08)',
+    background: 'rgba(255,255,255,0.9)',
+    border: '1px solid var(--glass-border)',
     borderRadius: '10px',
-    color: '#ffffff',
+    color: 'var(--text-main)',
     padding: '10px',
     fontSize: '0.85rem',
     outline: 'none',
@@ -1125,7 +1129,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '10px 14px',
     borderRadius: '10px',
     cursor: 'pointer',
-    color: '#ffffff',
+    color: 'var(--text-main)',
     textAlign: 'left',
     fontSize: '0.8rem',
     transition: 'all 0.15s ease',
@@ -1147,8 +1151,8 @@ const styles: Record<string, React.CSSProperties> = {
     marginTop: '10px',
   },
   shareBoardBtn: {
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.08)',
+    background: 'rgba(255,255,255,0.85)',
+    border: '1px solid var(--glass-border)',
     borderRadius: '8px',
     padding: '6px',
     display: 'flex',
@@ -1164,7 +1168,7 @@ const styles: Record<string, React.CSSProperties> = {
     left: '50%',
     transform: 'translateX(-50%)',
     background: 'rgba(129, 140, 248, 0.95)',
-    color: '#ffffff',
+    color: 'var(--text-main)',
     padding: '10px 24px',
     borderRadius: '30px',
     zIndex: 10000,
@@ -1180,10 +1184,10 @@ const styles: Record<string, React.CSSProperties> = {
   },
   cancelBtn: {
     background: 'rgba(255, 255, 255, 0.05)',
-    border: '1px solid rgba(255,255,255,0.08)',
+    border: '1px solid var(--glass-border)',
     borderRadius: '8px',
     padding: '8px 16px',
-    color: '#ffffff',
+    color: 'var(--text-main)',
     cursor: 'pointer',
     fontSize: '0.85rem',
   },
@@ -1197,10 +1201,10 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'flex-start',
     gap: '12px',
     marginTop: '6px',
-    background: 'rgba(255, 255, 255, 0.02)',
+    background: 'rgba(255, 255, 255, 0.7)',
     padding: '12px',
     borderRadius: '10px',
-    border: '1px solid rgba(255, 255, 255, 0.05)',
+    border: '1px solid var(--glass-border)',
   },
   checkboxInput: {
     marginTop: '4px',
@@ -1218,7 +1222,7 @@ const styles: Record<string, React.CSSProperties> = {
   checkboxText: {
     fontSize: '0.85rem',
     fontWeight: '600',
-    color: '#ffffff',
+    color: 'var(--text-main)',
   },
   checkboxSublabel: {
     fontSize: '0.725rem',

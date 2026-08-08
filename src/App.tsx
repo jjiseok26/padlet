@@ -107,17 +107,21 @@ const App: React.FC = () => {
   }, [isGuestShareMode, targetSharedBoardId, activeBoardId, setActiveBoardId]);
 
   const activeBoard = boards.find(b => b.id === activeBoardId);
-  const isLightBg = activeBoard ? isLightColor(activeBoard.wallpaper) : false;
+  // Default app chrome is bright; switch to dark tokens only for dark wallpapers
+  const useDarkTheme = !!activeBoard && !isLightColor(activeBoard.wallpaper) && !String(activeBoard.wallpaper).includes('(밝음)');
 
   const isViewingBoardAsGuest = !isAuthenticated && activeBoardId !== 'dashboard' && boards.some(b => b.id === activeBoardId);
   const isGuestView = isGuestShareMode || isViewingBoardAsGuest;
 
   return (
     <div 
-      className={isLightBg ? 'light-theme' : ''} 
+      className={useDarkTheme ? 'dark-theme' : ''} 
       style={{
         ...styles.appContainer,
-        backgroundColor: isLightBg ? '#f3f4f6' : '#030712'
+        background: useDarkTheme
+          ? 'linear-gradient(160deg, #030712 0%, #0b1220 100%)'
+          : 'linear-gradient(160deg, #e8f4fc 0%, #f7fbff 42%, #eef8f4 100%)',
+        backgroundColor: useDarkTheme ? '#030712' : '#f0f7fb',
       }}
     >
       {isGuestView ? (
@@ -159,7 +163,7 @@ const styles: Record<string, React.CSSProperties> = {
     height: '100vh',
     position: 'relative',
     overflow: 'hidden',
-    backgroundColor: '#030712',
+    backgroundColor: '#f0f7fb',
   }
 };
 

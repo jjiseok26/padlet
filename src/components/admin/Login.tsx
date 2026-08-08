@@ -103,7 +103,7 @@ export const Login: React.FC = () => {
           <h2 style={styles.title}>Google 로그인</h2>
           <p style={styles.subtitle}>
             Google 계정으로 로그인하세요. 데이터는 드라이브{' '}
-            <strong style={{ color: '#818cf8' }}>padlet</strong> 폴더에 저장됩니다.
+            <strong style={{ color: 'var(--color-primary)' }}>padlet</strong> 폴더에 저장됩니다.
           </p>
         </div>
 
@@ -170,7 +170,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#020617',
+    background: 'linear-gradient(160deg, #e8f4fc 0%, #f7fbff 45%, #eef8f4 100%)',
+    backgroundColor: '#f0f7fb',
     position: 'relative',
     overflow: 'hidden',
   },
@@ -178,20 +179,20 @@ const styles: Record<string, React.CSSProperties> = {
     position: 'absolute',
     borderRadius: '50%',
     filter: 'blur(100px)',
-    opacity: 0.35,
+    opacity: 0.55,
     pointerEvents: 'none',
   },
   glowOrb1: {
     width: '350px',
     height: '350px',
-    background: 'radial-gradient(circle, var(--color-primary) 0%, rgba(0,0,0,0) 70%)',
+    background: 'radial-gradient(circle, var(--orb-1) 0%, rgba(0,0,0,0) 70%)',
     top: '15%',
     left: '20%',
   },
   glowOrb2: {
     width: '400px',
     height: '400px',
-    background: 'radial-gradient(circle, var(--color-accent) 0%, rgba(0,0,0,0) 70%)',
+    background: 'radial-gradient(circle, var(--orb-2) 0%, rgba(0,0,0,0) 70%)',
     bottom: '10%',
     right: '15%',
   },
@@ -203,8 +204,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     gap: '24px',
-    border: '1px solid rgba(255, 255, 255, 0.08)',
-    boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)',
+    border: '1px solid var(--glass-border)',
+    boxShadow: 'var(--shadow-soft)',
     position: 'relative',
     zIndex: 10,
   },
@@ -219,8 +220,8 @@ const styles: Record<string, React.CSSProperties> = {
     width: '56px',
     height: '56px',
     borderRadius: '16px',
-    backgroundColor: 'rgba(129, 140, 248, 0.1)',
-    border: '1px solid rgba(129, 140, 248, 0.2)',
+    backgroundColor: 'var(--color-primary-soft)',
+    border: '1px solid rgba(13, 148, 136, 0.2)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -229,7 +230,7 @@ const styles: Record<string, React.CSSProperties> = {
   title: {
     fontSize: '1.35rem',
     fontWeight: '700',
-    color: '#ffffff',
+    color: 'var(--text-main)',
     letterSpacing: '-0.02em',
   },
   subtitle: {
@@ -240,11 +241,11 @@ const styles: Record<string, React.CSSProperties> = {
   errorBanner: {
     display: 'flex',
     alignItems: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.12)',
-    border: '1px solid rgba(239, 68, 68, 0.25)',
+    backgroundColor: 'rgba(220, 38, 38, 0.08)',
+    border: '1px solid rgba(220, 38, 38, 0.2)',
     borderRadius: '10px',
     padding: '10px 14px',
-    color: '#f87171',
+    color: '#b91c1c',
     fontSize: '0.775rem',
     fontWeight: '500',
   },
@@ -261,9 +262,9 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     backgroundColor: '#ffffff',
     color: '#1f2937',
-    border: 'none',
+    border: '1px solid rgba(15, 55, 80, 0.12)',
     borderRadius: '12px',
-    boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)',
+    boxShadow: '0 8px 20px rgba(22, 50, 74, 0.08)',
     transition: 'all 0.2s ease',
   },
   floatingGuideBtn: {
