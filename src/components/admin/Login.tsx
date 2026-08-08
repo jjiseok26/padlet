@@ -1,71 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuthStore } from '../../store/useBoardStore';
 import { motion } from 'framer-motion';
-import { ShieldAlert, HelpCircle, HardDrive, Settings, RefreshCw } from 'lucide-react';
+import { ShieldAlert, HelpCircle, HardDrive, RefreshCw } from 'lucide-react';
 import { GuideModal } from '../board/GuideModal';
-import {
-  requestGoogleOAuthToken,
-  getGoogleClientId,
-  setSavedClientId,
-  hasEnvClientId,
-} from '../../services/googleDriveService';
+import { requestGoogleOAuthToken } from '../../services/googleDriveService';
 
 export const Login: React.FC = () => {
   const googleLogin = useAuthStore((state) => state.googleLogin);
 
-  const [clientIdInput, setClientIdInput] = useState('');
-  const [showConfig, setShowConfig] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [shakeTrigger, setShakeTrigger] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
-  const envLocked = hasEnvClientId();
-
-  useEffect(() => {
-    const saved = getGoogleClientId();
-    if (saved) {
-      setClientIdInput(saved);
-      setShowConfig(false);
-    } else {
-      // No Client ID yet — surface the setup form so Google login can work
-      setShowConfig(true);
-    }
-  }, []);
-
-  const handleSaveClientId = (e: React.FormEvent) => {
-    e.preventDefault();
-    const value = clientIdInput.trim();
-    if (!value || !value.includes('.apps.googleusercontent.com')) {
-      setError('올바른 Google OAuth Client ID를 입력해주세요. (예: xxx.apps.googleusercontent.com)');
-      triggerShake();
-      return;
-    }
-    setSavedClientId(value);
-    setShowConfig(false);
-    setError('');
-  };
 
   const handleGoogleSignIn = async () => {
     setError('');
     setIsLoading(true);
 
-    const targetClientId = getGoogleClientId() || clientIdInput.trim();
-
-    if (!targetClientId) {
-      setError('먼저 Google OAuth Client ID를 설정해주세요.');
-      setShowConfig(true);
-      setIsLoading(false);
-      triggerShake();
-      return;
-    }
-
-    // Persist if typed but not yet saved
-    if (!getGoogleClientId() && targetClientId) {
-      setSavedClientId(targetClientId);
-    }
-
     try {
-      const authResult = await requestGoogleOAuthToken(targetClientId);
+      const authResult = await requestGoogleOAuthToken();
       if (!authResult.accessToken) {
         setError('Google 인증에 실패했습니다. 액세스 토큰이 없습니다.');
         triggerShake();
@@ -149,7 +102,7 @@ export const Login: React.FC = () => {
           </div>
           <h2 style={styles.title}>Google 로그인</h2>
           <p style={styles.subtitle}>
-            Google 계정으로만 사용할 수 있습니다. 데이터는 드라이브{' '}
+            Google 계정으로 로그인하세요. 데이터는 드라이브{' '}
             <strong style={{ color: '#818cf8' }}>padlet</strong> 폴더에 저장됩니다.
           </p>
         </div>
@@ -203,43 +156,6 @@ export const Login: React.FC = () => {
             </span>
           </button>
         </div>
-
-        {!envLocked && (
-          <>
-            <div style={styles.configToggleRow}>
-              <button type="button" onClick={() => setShowConfig(!showConfig)} style={styles.configToggleBtn}>
-                <Settings size={14} style={{ marginRight: '6px' }} />
-                <span>{showConfig ? 'Client ID 설정 닫기' : 'Google Cloud Client ID 설정'}</span>
-              </button>
-            </div>
-
-            {showConfig && (
-              <form onSubmit={handleSaveClientId} style={styles.configForm}>
-                <label style={styles.label}>Google OAuth Client ID (필수)</label>
-                <p style={styles.helpText}>
-                  Google Cloud Console에서 만든 웹 클라이언트 ID를 입력하세요.
-                  <br />
-                  승인된 JavaScript 원본에 <code style={styles.code}>{window.location.origin}</code> 를
-                  추가해야 합니다.
-                </p>
-                <div style={styles.inputWrapper}>
-                  <input
-                    type="text"
-                    value={clientIdInput}
-                    onChange={(e) => setClientIdInput(e.target.value)}
-                    placeholder="xxxx.apps.googleusercontent.com"
-                    style={styles.inputField}
-                    autoComplete="off"
-                    spellCheck={false}
-                  />
-                </div>
-                <button type="submit" className="button-premium active" style={{ marginTop: '8px', padding: '8px 16px' }}>
-                  Client ID 저장
-                </button>
-              </form>
-            )}
-          </>
-        )}
       </motion.div>
 
       <GuideModal isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
@@ -349,62 +265,6 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: '12px',
     boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)',
     transition: 'all 0.2s ease',
-  },
-  configToggleRow: {
-    display: 'flex',
-    justifyContent: 'center',
-  },
-  configToggleBtn: {
-    background: 'transparent',
-    border: 'none',
-    color: 'var(--text-muted)',
-    fontSize: '0.75rem',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  configForm: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    background: 'rgba(0, 0, 0, 0.3)',
-    padding: '16px',
-    borderRadius: '12px',
-    border: '1px solid rgba(255, 255, 255, 0.05)',
-  },
-  helpText: {
-    margin: 0,
-    fontSize: '0.7rem',
-    color: 'var(--text-muted)',
-    lineHeight: 1.45,
-  },
-  code: {
-    fontSize: '0.65rem',
-    color: '#a5b4fc',
-    wordBreak: 'break-all' as const,
-  },
-  label: {
-    fontSize: '0.725rem',
-    fontWeight: '600',
-    color: 'var(--text-muted)',
-  },
-  inputWrapper: {
-    display: 'flex',
-    alignItems: 'center',
-    background: 'rgba(0, 0, 0, 0.4)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    borderRadius: '8px',
-    padding: '2px 10px',
-  },
-  inputField: {
-    flex: 1,
-    background: 'transparent',
-    border: 'none',
-    outline: 'none',
-    color: '#ffffff',
-    fontSize: '0.8rem',
-    padding: '8px 0',
-    fontFamily: 'inherit',
   },
   floatingGuideBtn: {
     position: 'absolute',

@@ -14,23 +14,9 @@ export interface GoogleDriveUserData {
   accessToken: string;
 }
 
-const DEFAULT_CLIENT_ID_KEY = 'padlet_google_client_id';
-
-/** Prefer build-time env, then localStorage override. */
+/** Built-in Client ID from Vite env (set in Vercel / .env). Not shown to users. */
 export const getGoogleClientId = (): string => {
-  const fromEnv = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined)?.trim() || '';
-  if (fromEnv) return fromEnv;
-  return localStorage.getItem(DEFAULT_CLIENT_ID_KEY)?.trim() || '';
-};
-
-export const getSavedClientId = (): string => getGoogleClientId();
-
-export const setSavedClientId = (clientId: string): void => {
-  localStorage.setItem(DEFAULT_CLIENT_ID_KEY, clientId.trim());
-};
-
-export const hasEnvClientId = (): boolean => {
-  return Boolean((import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined)?.trim());
+  return (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined)?.trim() || '';
 };
 
 const waitForGoogleSdk = (timeoutMs = 10000): Promise<void> => {
@@ -58,11 +44,15 @@ const waitForGoogleSdk = (timeoutMs = 10000): Promise<void> => {
 /**
  * Initialize Google Token Client for OAuth 2.0 Access Token with Drive scopes
  */
-export const requestGoogleOAuthToken = async (
-  clientId: string
-): Promise<{ accessToken: string; user?: Partial<GoogleDriveUserData> }> => {
-  if (!clientId.trim()) {
-    throw new Error('Google OAuth Client ID가 필요합니다.');
+export const requestGoogleOAuthToken = async (): Promise<{
+  accessToken: string;
+  user?: Partial<GoogleDriveUserData>;
+}> => {
+  const clientId = getGoogleClientId();
+  if (!clientId) {
+    throw new Error(
+      'Google 로그인이 아직 설정되지 않았습니다. VITE_GOOGLE_CLIENT_ID 환경변수를 설정해주세요.'
+    );
   }
 
   await waitForGoogleSdk();
@@ -70,7 +60,7 @@ export const requestGoogleOAuthToken = async (
   return new Promise((resolve, reject) => {
     try {
       const client = window.google.accounts.oauth2.initTokenClient({
-        client_id: clientId.trim(),
+        client_id: clientId,
         scope:
           'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
         callback: async (response: any) => {
@@ -120,7 +110,6 @@ export const requestGoogleOAuthToken = async (
         },
       });
 
-      // Always show account picker so users can choose the right Google account
       client.requestAccessToken({ prompt: 'consent' });
     } catch (err: any) {
       reject(err instanceof Error ? err : new Error(String(err)));
