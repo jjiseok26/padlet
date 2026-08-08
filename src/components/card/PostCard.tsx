@@ -16,6 +16,7 @@ import {
   CornerDownLeft,
   X
 } from 'lucide-react';
+import { CARD_COLOR_PRESETS, hasMyReaction } from '../../utils/cardHelpers';
 
 interface PostCardProps {
   post: Post;
@@ -31,19 +32,12 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
     deletePost, 
     addComment, 
     deleteComment,
-    addReaction,
+    toggleReaction,
   } = useBoardStore();
 
   const [isEditing, setIsEditing] = useState(post.isDraft || false);
   const [showComments, setShowComments] = useState(false);
-
-  React.useEffect(() => {
-    if (post.isDraft) {
-      setIsEditing(true);
-    } else if (post.isDraft === false && !post.isApproved) {
-      setIsEditing(false);
-    }
-  }, [post.isDraft, post.isApproved]);
+  const [myReactionTick, setMyReactionTick] = useState(0);
 
   // Edit fields
   const [title, setTitle] = useState(post.title);
@@ -62,8 +56,27 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
   const [passwordAction, setPasswordAction] = useState<'edit' | 'delete' | null>(null);
   const [passwordVerificationInput, setPasswordVerificationInput] = useState('');
 
-
   const [isDragging, setIsDragging] = useState(false);
+
+  React.useEffect(() => {
+    if (post.isDraft) {
+      setIsEditing(true);
+    } else if (post.isDraft === false && !post.isApproved) {
+      setIsEditing(false);
+    }
+  }, [post.isDraft, post.isApproved]);
+
+  // Keep local editor fields in sync when the post updates from store/network
+  React.useEffect(() => {
+    if (isEditing) return;
+    setTitle(post.title);
+    setContent(post.content);
+    setAttachUrl(post.attachmentUrl || '');
+    setAttachType(post.attachmentType);
+    setCardBg(post.color);
+    setAuthorState(post.author);
+    setPasswordState(post.password || '');
+  }, [post.id, post.title, post.content, post.attachmentUrl, post.attachmentType, post.color, post.author, post.password, isEditing]);
 
   const handleHeaderMouseDown = (e: React.MouseEvent) => {
     if (layoutMode !== 'canvas' || isEditing) return;
@@ -160,8 +173,17 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
   };
 
   const handleReactionClick = (type: keyof Reactions) => {
-    addReaction(post.id, type);
+    toggleReaction(post.id, type);
+    setMyReactionTick((n) => n + 1);
   };
+
+  const reacted = {
+    like: hasMyReaction(post.id, 'like'),
+    love: hasMyReaction(post.id, 'love'),
+    clap: hasMyReaction(post.id, 'clap'),
+    fire: hasMyReaction(post.id, 'fire'),
+  };
+  void myReactionTick; // force re-render after toggle
 
   const handleDeleteClick = () => {
     if (isGuestMode && post.isGuestPost) {
@@ -187,17 +209,8 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
     setIsEditing(true);
   };
 
-  // Curated premium HSL presets
-  const colorPresets = [
-    { name: 'Indigo', value: 'var(--card-indigo)' },
-    { name: 'Emerald', value: 'var(--card-emerald)' },
-    { name: 'Peach', value: 'var(--card-peach)' },
-    { name: 'Sky Blue', value: 'var(--card-sky)' },
-    { name: 'Rose', value: 'var(--card-rose)' },
-    { name: 'Amber Gold', value: 'var(--card-amber)' },
-    { name: 'Violet', value: 'var(--card-violet)' },
-    { name: 'Mint', value: 'var(--card-mint)' }
-  ];
+  // Soft pastel presets that blend with board wallpapers
+  const colorPresets = CARD_COLOR_PRESETS;
 
   // Canvas card styles
   const cardStyle: React.CSSProperties = layoutMode === 'canvas' 
@@ -210,10 +223,10 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
         backgroundColor: cardBg,
         border: isEditing 
           ? '1px solid var(--color-primary)' 
-          : '1px solid rgba(255, 255, 255, 0.08)',
+          : '1px solid var(--border-card-base)',
         boxShadow: isEditing 
-          ? '0 12px 30px rgba(129, 140, 248, 0.2)' 
-          : '0 8px 32px 0 rgba(0, 0, 0, 0.25)',
+          ? '0 12px 30px rgba(13, 148, 136, 0.18)' 
+          : '0 10px 28px rgba(22, 50, 74, 0.12)',
         transition: 'border 0.3s ease, box-shadow 0.3s ease',
       }
     : {
@@ -222,10 +235,10 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
         backgroundColor: cardBg,
         border: isEditing 
           ? '1px solid var(--color-primary)' 
-          : '1px solid rgba(255, 255, 255, 0.08)',
+          : '1px solid var(--border-card-base)',
         boxShadow: isEditing 
-          ? '0 12px 30px rgba(129, 140, 248, 0.2)' 
-          : 'none',
+          ? '0 12px 30px rgba(13, 148, 136, 0.18)' 
+          : '0 8px 20px rgba(22, 50, 74, 0.08)',
         transition: 'border 0.3s ease, box-shadow 0.3s ease',
       };
 
@@ -646,35 +659,50 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
                 <div style={styles.reactionContainer}>
                   <button 
                     onClick={() => handleReactionClick('like')} 
-                    style={styles.reactionBtn}
-                    title="좋아요"
+                    style={{
+                      ...styles.reactionBtn,
+                      background: reacted.like ? 'var(--color-primary-soft)' : styles.reactionBtn.background,
+                      color: reacted.like ? 'var(--color-primary)' : undefined,
+                    }}
+                    title={reacted.like ? '좋아요 취소' : '좋아요'}
                   >
-                    <ThumbsUp size={12} />
-                    <span>{post.reactions.like}</span>
+                    <ThumbsUp size={12} fill={reacted.like ? 'currentColor' : 'none'} />
+                    <span>{post.reactions?.like ?? 0}</span>
                   </button>
                   <button 
                     onClick={() => handleReactionClick('love')} 
-                    style={styles.reactionBtn}
-                    title="하트"
+                    style={{
+                      ...styles.reactionBtn,
+                      background: reacted.love ? 'rgba(244, 63, 94, 0.1)' : styles.reactionBtn.background,
+                    }}
+                    title={reacted.love ? '하트 취소' : '하트'}
                   >
-                    <Heart size={12} style={{ fill: post.reactions.love > 0 ? '#f43f5e' : 'none', color: post.reactions.love > 0 ? '#f43f5e' : 'inherit' }} />
-                    <span>{post.reactions.love}</span>
+                    <Heart size={12} style={{ fill: reacted.love ? '#f43f5e' : 'none', color: reacted.love ? '#f43f5e' : 'inherit' }} />
+                    <span>{post.reactions?.love ?? 0}</span>
                   </button>
                   <button 
                     onClick={() => handleReactionClick('clap')} 
-                    style={styles.reactionBtn}
-                    title="박수"
+                    style={{
+                      ...styles.reactionBtn,
+                      background: reacted.clap ? 'var(--color-primary-soft)' : styles.reactionBtn.background,
+                      color: reacted.clap ? 'var(--color-primary)' : undefined,
+                    }}
+                    title={reacted.clap ? '박수 취소' : '박수'}
                   >
                     <Smile size={12} />
-                    <span>{post.reactions.clap}</span>
+                    <span>{post.reactions?.clap ?? 0}</span>
                   </button>
                   <button 
                     onClick={() => handleReactionClick('fire')} 
-                    style={styles.reactionBtn}
-                    title="최고"
+                    style={{
+                      ...styles.reactionBtn,
+                      background: reacted.fire ? 'rgba(251, 191, 36, 0.15)' : styles.reactionBtn.background,
+                      color: reacted.fire ? '#d97706' : undefined,
+                    }}
+                    title={reacted.fire ? '최고 취소' : '최고'}
                   >
                     <Sparkles size={12} />
-                    <span>{post.reactions.fire}</span>
+                    <span>{post.reactions?.fire ?? 0}</span>
                   </button>
                 </div>
 

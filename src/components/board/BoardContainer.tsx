@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useBoardStore, useAuthStore } from '../../store/useBoardStore';
 import type { Post } from '../../store/useBoardStore';
 import { PostCard } from '../card/PostCard';
+import { pickRandomCardColor } from '../../utils/cardHelpers';
 
 interface BoardContainerProps {
   isGuestMode?: boolean;
@@ -23,7 +24,8 @@ export const BoardContainer: React.FC<BoardContainerProps> = ({ isGuestMode = fa
     panY,
     scale,
     setPan,
-    setScale
+    setScale,
+    currentUser,
   } = useAuthStore();
 
   const boardRef = useRef<HTMLDivElement>(null);
@@ -172,15 +174,7 @@ export const BoardContainer: React.FC<BoardContainerProps> = ({ isGuestMode = fa
     if (isGuestMode) return;
     if (e.target !== e.currentTarget && e.target !== boardRef.current) return;
 
-    const colors = [
-      'var(--card-indigo)',
-      'var(--card-emerald)',
-      'var(--card-peach)',
-      'var(--card-sky)',
-      'var(--card-rose)',
-      'var(--card-amber)'
-    ];
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    const randomColor = pickRandomCardColor();
 
     let posX = 100;
     let posY = 100;
@@ -223,7 +217,12 @@ export const BoardContainer: React.FC<BoardContainerProps> = ({ isGuestMode = fa
       attachmentType: 'none',
       color: randomColor,
       positionX: posX,
-      positionY: posY
+      positionY: posY,
+      author: isGuestMode ? '' : (currentUser?.username || '교사'),
+      password: isGuestMode ? '' : undefined,
+      isApproved: true,
+      isGuestPost: isGuestMode,
+      isDraft: true,
     });
   };
 
@@ -393,11 +392,11 @@ export const BoardContainer: React.FC<BoardContainerProps> = ({ isGuestMode = fa
                         title: '',
                         content: '',
                         attachmentType: 'none',
-                        color: 'var(--card-indigo)',
+                        color: pickRandomCardColor(),
                         positionX: 0,
                         positionY: 0,
                         columnName: colName,
-                        author: isGuestMode ? '' : '관리자',
+                        author: isGuestMode ? '' : (currentUser?.username || '교사'),
                         password: isGuestMode ? '' : undefined,
                         isApproved: true,
                         isGuestPost: isGuestMode,

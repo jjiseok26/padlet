@@ -59,14 +59,16 @@
   --card-mint-s: 65%;
   --card-mint-l: 42%;
 
-  --card-indigo: hsla(var(--card-indigo-h), var(--card-indigo-s), var(--card-indigo-l), 0.14);
-  --card-emerald: hsla(var(--card-emerald-h), var(--card-emerald-s), var(--card-emerald-l), 0.14);
-  --card-peach: hsla(var(--card-peach-h), var(--card-peach-s), var(--card-peach-l), 0.14);
-  --card-sky: hsla(var(--card-sky-h), var(--card-sky-s), var(--card-sky-l), 0.14);
-  --card-rose: hsla(var(--card-rose-h), var(--card-rose-s), var(--card-rose-l), 0.14);
-  --card-amber: hsla(var(--card-amber-h), var(--card-amber-s), var(--card-amber-l), 0.14);
-  --card-violet: hsla(var(--card-violet-h), var(--card-violet-s), var(--card-violet-l), 0.14);
-  --card-mint: hsla(var(--card-mint-h), var(--card-mint-s), var(--card-mint-l), 0.14);
+  /* Soft sticky-note pastels that sit well on bright wallpapers */
+  --card-indigo: #e7f3ff;
+  --card-emerald: #e6f7f0;
+  --card-peach: #fff0e8;
+  --card-sky: #e8f8fc;
+  --card-rose: #fdeef4;
+  --card-amber: #fff8e6;
+  --card-violet: #eef6f4;
+  --card-mint: #e9faf6;
+  --card-paper: #ffffff;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -94,14 +96,15 @@
   --orb-1: rgba(45, 212, 191, 0.28);
   --orb-2: rgba(56, 189, 248, 0.22);
 
-  --card-indigo: hsla(var(--card-indigo-h), var(--card-indigo-s), 65%, 0.08);
-  --card-emerald: hsla(var(--card-emerald-h), var(--card-emerald-s), 60%, 0.08);
-  --card-peach: hsla(var(--card-peach-h), var(--card-peach-s), 65%, 0.08);
-  --card-sky: hsla(var(--card-sky-h), var(--card-sky-s), 62%, 0.08);
-  --card-rose: hsla(var(--card-rose-h), var(--card-rose-s), 65%, 0.08);
-  --card-amber: hsla(var(--card-amber-h), var(--card-amber-s), 58%, 0.08);
-  --card-violet: hsla(var(--card-violet-h), var(--card-violet-s), 55%, 0.08);
-  --card-mint: hsla(var(--card-mint-h), var(--card-mint-s), 58%, 0.08);
+  --card-indigo: rgba(125, 211, 252, 0.16);
+  --card-emerald: rgba(110, 231, 183, 0.14);
+  --card-peach: rgba(253, 186, 116, 0.16);
+  --card-sky: rgba(125, 211, 252, 0.14);
+  --card-rose: rgba(251, 113, 133, 0.14);
+  --card-amber: rgba(251, 191, 36, 0.14);
+  --card-violet: rgba(94, 234, 212, 0.14);
+  --card-mint: rgba(94, 234, 212, 0.12);
+  --card-paper: rgba(30, 41, 59, 0.55);
 }
 
 * {

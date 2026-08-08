@@ -19,6 +19,7 @@ import {
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { GuideModal } from './GuideModal';
+import { pickRandomCardColor } from '../../utils/cardHelpers';
 
 interface BoardHeaderProps {
   onToggleWallpaperPicker: () => void;
@@ -145,15 +146,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onToggleWallpaperPicke
       attempts++;
     }
 
-    const colors = [
-      'var(--card-indigo)',
-      'var(--card-emerald)',
-      'var(--card-peach)',
-      'var(--card-sky)',
-      'var(--card-rose)',
-      'var(--card-amber)'
-    ];
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    const randomColor = pickRandomCardColor();
 
     addPost(activeBoard.id, {
       title: '',

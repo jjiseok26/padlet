@@ -6,6 +6,7 @@ import {
   loadPadletDataFromDrive,
   savePadletDataToDrive
 } from '../services/googleDriveService';
+import { hasMyReaction, setMyReaction, loadMyReactions, saveMyReactions } from '../utils/cardHelpers';
 
 export type LayoutType = 'grid' | 'wall' | 'canvas' | 'column';
 export type AttachmentType = 'image' | 'video' | 'link' | 'file' | 'none';
@@ -96,6 +97,8 @@ interface BoardState {
   deletePost: (id: string) => void;
   addComment: (postId: string, author: string, content: string) => void;
   deleteComment: (postId: string, commentId: string) => void;
+  /** Toggle a reaction once per browser; second click removes it. */
+  toggleReaction: (postId: string, type: keyof Reactions) => void;
   addReaction: (postId: string, type: keyof Reactions) => void;
 }
 
@@ -344,6 +347,13 @@ export const useBoardStore = create<BoardState>((set, get) => {
           });
         }
 
+        // Clear local reaction marks for deleted card
+        const mine = loadMyReactions();
+        if (mine[id]) {
+          delete mine[id];
+          saveMyReactions(mine);
+        }
+
         saveBoardState(updatedBoards, updatedPosts, state.adminPassword);
         return { 
           boards: updatedBoards,
@@ -380,18 +390,30 @@ export const useBoardStore = create<BoardState>((set, get) => {
         return { posts: updatedPosts };
       }),
 
-    addReaction: (postId, type) =>
+    addReaction: (postId, type) => {
+      // Back-compat alias → toggle once per browser
+      get().toggleReaction(postId, type);
+    },
+
+    toggleReaction: (postId, type) =>
       set((state) => {
+        const already = hasMyReaction(postId, type);
         const updatedPosts = state.posts.map((p) => {
           if (p.id !== postId) return p;
+          const current = p.reactions?.[type] ?? 0;
+          const nextCount = already ? Math.max(0, current - 1) : current + 1;
           return {
             ...p,
             reactions: {
-              ...p.reactions,
-              [type]: p.reactions[type] + 1,
+              like: p.reactions?.like ?? 0,
+              love: p.reactions?.love ?? 0,
+              clap: p.reactions?.clap ?? 0,
+              fire: p.reactions?.fire ?? 0,
+              [type]: nextCount,
             },
           };
         });
+        setMyReaction(postId, type, !already);
         saveBoardState(state.boards, updatedPosts, state.adminPassword);
         return { posts: updatedPosts };
       }),
