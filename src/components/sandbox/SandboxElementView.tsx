@@ -27,7 +27,7 @@ const SandboxElementViewBase: React.FC<Props> = ({
   groupColor,
   onStartDrag,
 }) => {
-  const { updateElement, deleteElement } = useSandboxStore();
+  const { updateElement, deleteElement, tool } = useSandboxStore();
   // Only the author drops straight into edit mode. Otherwise a note someone
   // else is still typing would open as an empty editor on every other screen.
   const [isEditingText, setIsEditingText] = useState(
@@ -56,6 +56,9 @@ const SandboxElementViewBase: React.FC<Props> = ({
   const handlePointerDown = (e: React.PointerEvent) => {
     if (!canEdit || isEditingText) return;
     if (e.button !== 0) return;
+    // With a creation tool active the click belongs to the canvas, otherwise
+    // you could never draw or place a note on top of existing work.
+    if (tool !== 'select') return;
     e.stopPropagation();
     onStartDrag(element, e.clientX, e.clientY);
   };

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PenTool, Plus, Users, Share2, Trash2, ArrowRight, X } from 'lucide-react';
+import { Plus, Users, Share2, Trash2, ArrowRight, X } from 'lucide-react';
 import { useSandboxStore, SANDBOX_BACKGROUNDS } from '../../store/useSandboxStore';
 
 interface Props {
@@ -43,20 +43,14 @@ export const SandboxSection: React.FC<Props> = ({ onToast }) => {
   return (
     <section style={styles.section}>
       <div style={styles.sectionHeader}>
-        <div style={styles.sectionTitleRow}>
-          <PenTool size={18} color="var(--color-primary)" />
-          <h2 style={{ margin: 0 }}>모둠 협업 캔버스</h2>
-          <span style={styles.badge}>실시간</span>
-        </div>
+        <p style={styles.sectionDesc}>
+          모둠마다 자기 캔버스를 갖고, 같은 모둠 학생들이 동시에 그리고 쓰며 협업합니다.
+        </p>
         <button className="button-premium active" onClick={() => setIsModalOpen(true)}>
           <Plus size={15} />
           <span>새 캔버스</span>
         </button>
       </div>
-
-      <p style={styles.sectionDesc}>
-        하나의 큰 캔버스를 모둠별 영역으로 나눠, 학생들이 동시에 그리고 쓰며 협업합니다.
-      </p>
 
       {sandboxes.length === 0 ? (
         <div

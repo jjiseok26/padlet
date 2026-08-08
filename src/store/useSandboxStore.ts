@@ -151,10 +151,14 @@ const persist = (sandboxes: Sandbox[], elements: SandboxElement[]) => {
 
 const roomTopic = (sandboxId: string) => `antigravity/padlet/v1/sandbox/${mqttHostKey}/${sandboxId}`;
 
+/** Every 모둠 works on its own page, so all groups share one coordinate space. */
+export const GROUP_PAGE = { width: 1600, height: 1000 };
+
 interface SandboxState {
   sandboxes: Sandbox[];
   elements: SandboxElement[];
   activeSandboxId: string | null;
+  activeGroupId: string | null;
 
   // Local participant identity
   myName: string;
@@ -193,6 +197,7 @@ interface SandboxState {
 
   // Session
   setActiveSandboxId: (id: string | null) => void;
+  setActiveGroupId: (id: string | null) => void;
   setIdentity: (name: string, groupId: string | null, color?: string) => void;
   setTool: (tool: SandboxTool) => void;
   setDrawColor: (color: string) => void;
@@ -218,6 +223,7 @@ export const useSandboxStore = create<SandboxState>((set, get) => {
     sandboxes: initial.sandboxes,
     elements: initial.elements,
     activeSandboxId: null,
+    activeGroupId: null,
 
     myName: identity.name,
     myColor: identity.color,
@@ -236,19 +242,14 @@ export const useSandboxStore = create<SandboxState>((set, get) => {
       const cleanNames = groupNames.map((n) => n.trim()).filter(Boolean);
       const names = cleanNames.length > 0 ? cleanNames : ['1모둠', '2모둠', '3모둠', '4모둠'];
 
-      const columns = Math.min(names.length, 3);
-      const zoneWidth = 720;
-      const zoneHeight = 560;
-      const gap = 60;
-
       const groups: SandboxGroup[] = names.map((name, index) => ({
         id: uid('group'),
         name,
         color: GROUP_COLORS[index % GROUP_COLORS.length],
-        x: (index % columns) * (zoneWidth + gap),
-        y: Math.floor(index / columns) * (zoneHeight + gap),
-        width: zoneWidth,
-        height: zoneHeight,
+        x: 0,
+        y: 0,
+        width: GROUP_PAGE.width,
+        height: GROUP_PAGE.height,
       }));
 
       const sandbox: Sandbox = {
@@ -298,18 +299,14 @@ export const useSandboxStore = create<SandboxState>((set, get) => {
       const sandboxes = get().sandboxes.map((s) => {
         if (s.id !== sandboxId) return s;
         const index = s.groups.length;
-        const columns = 3;
-        const zoneWidth = 720;
-        const zoneHeight = 560;
-        const gap = 60;
         const group: SandboxGroup = {
           id: uid('group'),
           name: name.trim() || `${index + 1}모둠`,
           color: GROUP_COLORS[index % GROUP_COLORS.length],
-          x: (index % columns) * (zoneWidth + gap),
-          y: Math.floor(index / columns) * (zoneHeight + gap),
-          width: zoneWidth,
-          height: zoneHeight,
+          x: 0,
+          y: 0,
+          width: GROUP_PAGE.width,
+          height: GROUP_PAGE.height,
         };
         return { ...s, groups: [...s.groups, group] };
       });
@@ -404,7 +401,10 @@ export const useSandboxStore = create<SandboxState>((set, get) => {
       commit(sandboxes, elements);
     },
 
-    setActiveSandboxId: (id) => set({ activeSandboxId: id, panX: 0, panY: 0, scale: 1, selectedElementId: null }),
+    setActiveSandboxId: (id) =>
+      set({ activeSandboxId: id, activeGroupId: null, panX: 0, panY: 0, scale: 1, selectedElementId: null }),
+
+    setActiveGroupId: (id) => set({ activeGroupId: id, selectedElementId: null }),
 
     setIdentity: (name, groupId, color) => {
       const nextColor = color || get().myColor;
@@ -565,30 +565,24 @@ export const publishSandboxSnapshot = (sandboxId: string): void => {
   });
 };
 
-/** Viewport that frames every 모둠 zone, so a canvas opens showing the whole space. */
+/** Viewport that frames one 모둠 page inside the given viewport. */
 export const computeFitViewport = (
-  groups: SandboxGroup[],
   viewportWidth: number,
-  viewportHeight: number
+  viewportHeight: number,
+  padding = 60
 ): { panX: number; panY: number; scale: number } => {
-  if (groups.length === 0 || viewportWidth <= 0 || viewportHeight <= 0) {
-    return { panX: 60, panY: 50, scale: 1 };
+  if (viewportWidth <= 0 || viewportHeight <= 0) {
+    return { panX: 0, panY: 0, scale: 1 };
   }
 
-  const padding = 90;
-  const minX = Math.min(...groups.map((g) => g.x)) - padding;
-  const minY = Math.min(...groups.map((g) => g.y)) - padding;
-  const maxX = Math.max(...groups.map((g) => g.x + g.width)) + padding;
-  const maxY = Math.max(...groups.map((g) => g.y + g.height)) + padding;
-
-  const contentWidth = maxX - minX;
-  const contentHeight = maxY - minY;
-  const scale = Math.max(0.25, Math.min(1, viewportWidth / contentWidth, viewportHeight / contentHeight));
+  const contentWidth = GROUP_PAGE.width + padding * 2;
+  const contentHeight = GROUP_PAGE.height + padding * 2;
+  const scale = Math.max(0.2, Math.min(1, viewportWidth / contentWidth, viewportHeight / contentHeight));
 
   return {
     scale,
-    panX: (viewportWidth - contentWidth * scale) / 2 - minX * scale,
-    panY: (viewportHeight - contentHeight * scale) / 2 - minY * scale,
+    panX: (viewportWidth - GROUP_PAGE.width * scale) / 2,
+    panY: (viewportHeight - GROUP_PAGE.height * scale) / 2,
   };
 };
 

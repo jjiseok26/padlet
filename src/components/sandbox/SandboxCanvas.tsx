@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useSandboxStore } from '../../store/useSandboxStore';
-import type { Sandbox, SandboxElement } from '../../store/useSandboxStore';
+import { useSandboxStore, GROUP_PAGE } from '../../store/useSandboxStore';
+import type { Sandbox, SandboxElement, SandboxGroup } from '../../store/useSandboxStore';
 import { sendCursor } from '../../store/usePresenceStore';
 import { PresenceCursors } from './PresenceCursors';
 import { SandboxElementView } from './SandboxElementView';
 
 interface SandboxCanvasProps {
   sandbox: Sandbox;
+  group: SandboxGroup | null;
   canEdit: boolean;
 }
 
@@ -45,7 +46,7 @@ const toCanvasPoint = (
   y: (clientY - rect.top - panY) / scale,
 });
 
-export const SandboxCanvas: React.FC<SandboxCanvasProps> = ({ sandbox, canEdit }) => {
+export const SandboxCanvas: React.FC<SandboxCanvasProps> = ({ sandbox, group, canEdit }) => {
   const {
     elements,
     tool,
@@ -54,7 +55,6 @@ export const SandboxCanvas: React.FC<SandboxCanvasProps> = ({ sandbox, canEdit }
     panX,
     panY,
     scale,
-    myGroupId,
     myName,
     selectedElementId,
     setViewport,
@@ -64,6 +64,8 @@ export const SandboxCanvas: React.FC<SandboxCanvasProps> = ({ sandbox, canEdit }
     deleteElement,
     setTool,
   } = useSandboxStore();
+
+  const activeGroupId = group?.id ?? null;
 
   const viewportRef = useRef<HTMLDivElement>(null);
 
@@ -81,22 +83,12 @@ export const SandboxCanvas: React.FC<SandboxCanvasProps> = ({ sandbox, canEdit }
   // Element dragging
   const dragState = useRef<{ id: string; offsetX: number; offsetY: number } | null>(null);
 
+  // Each 모둠 has its own page, so only that group's work is on screen
   const sandboxElements = elements
-    .filter((el) => el.sandboxId === sandbox.id)
+    .filter((el) => el.sandboxId === sandbox.id && el.groupId === activeGroupId)
     .sort((a, b) => a.zIndex - b.zIndex);
 
   const getRect = () => viewportRef.current?.getBoundingClientRect();
-
-  /** Which 모둠 zone contains this point, so new work is auto-assigned. */
-  const groupAt = useCallback(
-    (x: number, y: number): string | null => {
-      const zone = sandbox.groups.find(
-        (g) => x >= g.x && x <= g.x + g.width && y >= g.y && y <= g.y + g.height
-      );
-      return zone ? zone.id : null;
-    },
-    [sandbox.groups]
-  );
 
   const handlePointerDown = (e: React.PointerEvent) => {
     const rect = getRect();
@@ -148,7 +140,7 @@ export const SandboxCanvas: React.FC<SandboxCanvasProps> = ({ sandbox, canEdit }
       const x = point.x - NOTE_WIDTH / 2;
       const y = point.y - NOTE_HEIGHT / 2;
       const id = addElement(sandbox.id, {
-        groupId: groupAt(point.x, point.y) ?? myGroupId,
+        groupId: activeGroupId,
         type: 'note',
         x,
         y,
@@ -165,7 +157,7 @@ export const SandboxCanvas: React.FC<SandboxCanvasProps> = ({ sandbox, canEdit }
 
     if (tool === 'text') {
       const id = addElement(sandbox.id, {
-        groupId: groupAt(point.x, point.y) ?? myGroupId,
+        groupId: activeGroupId,
         type: 'text',
         x: point.x,
         y: point.y,
@@ -199,7 +191,7 @@ export const SandboxCanvas: React.FC<SandboxCanvasProps> = ({ sandbox, canEdit }
       const { id, offsetX, offsetY } = dragState.current;
       const x = point.x - offsetX;
       const y = point.y - offsetY;
-      updateElement(id, { x, y, groupId: groupAt(x + 20, y + 20) });
+      updateElement(id, { x, y });
       return;
     }
 
@@ -242,7 +234,7 @@ export const SandboxCanvas: React.FC<SandboxCanvasProps> = ({ sandbox, canEdit }
       const originY = draftOrigin.current.y + minY;
 
       addElement(sandbox.id, {
-        groupId: groupAt(originX, originY) ?? myGroupId,
+        groupId: activeGroupId,
         type: 'draw',
         x: originX,
         y: originY,
@@ -258,7 +250,7 @@ export const SandboxCanvas: React.FC<SandboxCanvasProps> = ({ sandbox, canEdit }
 
     if (draftShape && draftShape.w > 6 && draftShape.h > 6) {
       addElement(sandbox.id, {
-        groupId: groupAt(draftShape.x, draftShape.y) ?? myGroupId,
+        groupId: activeGroupId,
         type: tool === 'line' ? 'line' : tool === 'ellipse' ? 'ellipse' : 'rect',
         x: draftShape.x,
         y: draftShape.y,
@@ -328,11 +320,7 @@ export const SandboxCanvas: React.FC<SandboxCanvasProps> = ({ sandbox, canEdit }
   return (
     <div
       ref={viewportRef}
-      style={{
-        ...styles.viewport,
-        ...(BACKGROUND_STYLES[sandbox.background] || BACKGROUND_STYLES['grid-light']),
-        cursor: cursorStyle,
-      }}
+      style={{ ...styles.viewport, cursor: cursorStyle }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -341,36 +329,27 @@ export const SandboxCanvas: React.FC<SandboxCanvasProps> = ({ sandbox, canEdit }
       data-canvas-bg="true"
     >
       <div
+        data-canvas-world="true"
         style={{
           ...styles.world,
           transform: `translate(${panX}px, ${panY}px) scale(${scale})`,
         }}
       >
-        {/* 모둠 zones */}
-        {sandbox.groups.map((group) => {
-          const isMine = group.id === myGroupId;
-          return (
-            <div
-              key={group.id}
-              style={{
-                ...styles.zone,
-                left: group.x,
-                top: group.y,
-                width: group.width,
-                height: group.height,
-                borderColor: isMine ? group.color : `${group.color}66`,
-                borderWidth: isMine ? 3 : 2,
-                background: isMine ? `${group.color}10` : `${group.color}07`,
-                boxShadow: isMine ? `0 0 0 4px ${group.color}1a` : 'none',
-              }}
-            >
-              <div style={{ ...styles.zoneLabel, background: group.color }}>
-                {group.name}
-                {isMine && <span style={styles.zoneMine}>내 모둠</span>}
-              </div>
-            </div>
-          );
-        })}
+        {/* The active 모둠's page */}
+        {group && (
+          <div
+            data-group-page="true"
+            style={{
+              ...styles.page,
+              width: GROUP_PAGE.width,
+              height: GROUP_PAGE.height,
+              borderColor: `${group.color}55`,
+              ...(BACKGROUND_STYLES[sandbox.background] || BACKGROUND_STYLES['grid-light']),
+            }}
+          >
+            <div style={{ ...styles.pageLabel, background: group.color }}>{group.name}</div>
+          </div>
+        )}
 
         {/* Persisted elements */}
         {sandboxElements.map((element) => (
@@ -379,7 +358,7 @@ export const SandboxCanvas: React.FC<SandboxCanvasProps> = ({ sandbox, canEdit }
             element={element}
             isSelected={element.id === selectedElementId}
             canEdit={canEdit}
-            groupColor={sandbox.groups.find((g) => g.id === element.groupId)?.color}
+            groupColor={group?.color}
             onStartDrag={startElementDrag}
           />
         ))}
@@ -435,6 +414,7 @@ const styles: Record<string, React.CSSProperties> = {
     inset: 0,
     overflow: 'hidden',
     touchAction: 'none',
+    background: 'linear-gradient(160deg, #eef5fa 0%, #f4f9fd 100%)',
   },
   world: {
     position: 'absolute',
@@ -444,33 +424,26 @@ const styles: Record<string, React.CSSProperties> = {
     width: 0,
     height: 0,
   },
-  zone: {
+  page: {
     position: 'absolute',
-    borderStyle: 'dashed',
-    borderRadius: 24,
+    left: 0,
+    top: 0,
+    borderStyle: 'solid',
+    borderWidth: 2,
+    borderRadius: 18,
     pointerEvents: 'none',
-    transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
+    boxShadow: '0 18px 50px rgba(22, 50, 74, 0.12)',
   },
-  zoneLabel: {
+  pageLabel: {
     position: 'absolute',
-    top: -16,
-    left: 20,
-    padding: '5px 14px',
+    top: -15,
+    left: 24,
+    padding: '5px 16px',
     borderRadius: 999,
     color: '#ffffff',
     fontSize: '0.8rem',
     fontWeight: 700,
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
     boxShadow: '0 6px 16px rgba(22, 50, 74, 0.18)',
-  },
-  zoneMine: {
-    background: 'rgba(255,255,255,0.28)',
-    borderRadius: 999,
-    padding: '1px 8px',
-    fontSize: '0.65rem',
-    fontWeight: 700,
   },
   draftLayer: {
     position: 'absolute',

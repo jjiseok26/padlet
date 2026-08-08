@@ -49,6 +49,13 @@ async function main() {
   await teacher.reload();
   await teacher.waitForTimeout(1200);
 
+  // --- Dashboard tabs ---
+  const boardsVisibleFirst = await teacher.getByPlaceholder('보드 검색...').isVisible();
+  await teacher.getByRole('button', { name: /모둠 협업 캔버스/ }).click();
+  await teacher.waitForTimeout(400);
+  const boardsHiddenOnCanvasTab = !(await teacher.getByPlaceholder('보드 검색...').isVisible());
+  log(`dashboard tabs: boards default=${boardsVisibleFirst}, boards hidden on canvas tab=${boardsHiddenOnCanvasTab}`);
+
   // --- Create a canvas ---
   await teacher.getByRole('button', { name: /새 캔버스/ }).click();
   await teacher.getByPlaceholder('예: 4학년 과학 브레인스토밍').fill('스모크 캔버스');
@@ -126,7 +133,48 @@ async function main() {
   log(`rect created: ${state.elements.some((e) => e.type === 'rect')}`);
   log('total elements:', state.elements.length);
 
+  const groups = state.sandboxes[0].groups;
+  const firstGroupId = groups[0].id;
+  const allInFirstGroup = state.elements.every((e) => e.groupId === firstGroupId);
+  log(`all work assigned to the open 모둠 tab: ${allInFirstGroup}`);
+
   await teacher.screenshot({ path: '/tmp/sandbox-teacher.png' });
+
+  // --- Group tabs isolate each 모둠's canvas ---
+  const visibleNotesOn = async () =>
+    teacher.evaluate(() => document.body.innerText.includes('아이디어 1'));
+
+  const onGroup1 = await visibleNotesOn();
+  await teacher.getByTitle(`${groups[1].name} 캔버스 열기`).click();
+  await teacher.waitForTimeout(500);
+  const onGroup2 = await visibleNotesOn();
+  log(`group tab isolation: visible on 1모둠=${onGroup1}, visible on 2모둠=${onGroup2}`);
+
+  // Work added on another tab stays on that tab
+  const box2 = await teacher.locator('[data-canvas-bg="true"]').boundingBox();
+  await teacher.getByTitle('메모지').click();
+  await teacher.mouse.click(box2.x + box2.width / 2, box2.y + box2.height / 2);
+  await teacher.waitForTimeout(350);
+  await teacher.keyboard.type('2모둠 메모');
+  await teacher.mouse.click(box2.x + 40, box2.y + box2.height - 40);
+  await teacher.waitForTimeout(600);
+
+  state = await readSandboxState(teacher);
+  const g2 = state.elements.filter((e) => e.groupId === groups[1].id);
+  log(`2모둠 element count: ${g2.length} (text="${g2[0]?.text ?? ''}")`);
+
+  // --- PDF export ---
+  const downloadPromise = teacher.waitForEvent('download', { timeout: 30000 });
+  await teacher.getByTitle('현재 모둠 캔버스를 PDF로 저장').click();
+  const download = await downloadPromise;
+  const pdfPath = '/tmp/sandbox-group.pdf';
+  await download.saveAs(pdfPath);
+  const { statSync } = await import('node:fs');
+  log(`PDF exported: ${download.suggestedFilename()} (${statSync(pdfPath).size} bytes)`);
+
+  // Back to the first group for the collaboration checks
+  await teacher.getByTitle(`${groups[0].name} 캔버스 열기`).click();
+  await teacher.waitForTimeout(400);
 
   // --- Guest joins via share link (separate context = separate storage) ---
   const guestCtx = await browser.newContext({ viewport: { width: 1280, height: 860 } });
@@ -156,12 +204,19 @@ async function main() {
 
     // Guest adds a note; teacher should receive it
     const gbox = await guest.locator('[data-canvas-bg="true"]').boundingBox();
+    // Place it on empty space near the top of the page, clear of the teacher's work
     await guest.getByTitle('메모지').click();
-    await guest.mouse.click(gbox.x + gbox.width / 2 + 120, gbox.y + gbox.height / 2 - 40);
+    await guest.mouse.click(gbox.x + gbox.width / 2 + 260, gbox.y + 120);
     await guest.waitForTimeout(400);
     await guest.keyboard.type('학생 메모');
     await guest.mouse.click(gbox.x + 60, gbox.y + gbox.height - 60);
-    await guest.waitForTimeout(2000);
+    await guest.waitForTimeout(2500);
+
+    const guestState = await readSandboxState(guest);
+    const guestOwnNote = guestState.elements.find((e) => e.text === '학생 메모');
+    log(
+      `guest created its own note: ${Boolean(guestOwnNote)} | guest total=${guestState.elements.length}`
+    );
 
     const teacherState = await readSandboxState(teacher);
     const gotStudentNote = teacherState.elements.some((e) => e.text === '학생 메모');

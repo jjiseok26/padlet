@@ -7,7 +7,7 @@ export const PresenceCursors: React.FC = () => {
   const peers = usePresenceStore((state) => state.peers);
 
   return (
-    <>
+    <div data-presence-layer="true">
       {Object.values(peers).map((peer) => (
         <div
           key={peer.clientId}
@@ -39,6 +39,6 @@ export const PresenceCursors: React.FC = () => {
           </div>
         </div>
       ))}
-    </>
+    </div>
   );
 };

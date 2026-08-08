@@ -1,14 +1,18 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import {
   useSandboxStore,
   joinSandboxRoom,
   publishSandboxSnapshot,
   computeFitViewport,
+  GROUP_PAGE,
 } from '../../store/useSandboxStore';
 import { startPresence, stopPresence, updatePresenceIdentity } from '../../store/usePresenceStore';
 import { SandboxCanvas } from './SandboxCanvas';
 import { SandboxHeader } from './SandboxHeader';
 import { SandboxToolbar } from './SandboxToolbar';
+import { GroupTabs } from './GroupTabs';
 import { JoinSandboxModal } from './JoinSandboxModal';
 
 interface Props {
@@ -17,36 +21,40 @@ interface Props {
   onExit: () => void;
 }
 
+const TOP_OFFSET = 68 + 49; // header + group tab bar
+
 export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onExit }) => {
-  const { sandboxes, myName, myGroupId, myColor, setIdentity, setActiveSandboxId, setViewport } =
-    useSandboxStore();
+  const {
+    sandboxes,
+    elements,
+    myName,
+    myGroupId,
+    myColor,
+    activeGroupId,
+    setIdentity,
+    setActiveSandboxId,
+    setActiveGroupId,
+    setViewport,
+    addGroup,
+  } = useSandboxStore();
+
   const sandbox = sandboxes.find((s) => s.id === sandboxId);
+  const activeGroup = sandbox?.groups.find((g) => g.id === activeGroupId) ?? null;
 
   const [toast, setToast] = useState('');
   const [hasJoined, setHasJoined] = useState(() => Boolean(myName));
-  const framedSandboxId = useRef<string | null>(null);
-
-  const fitToContent = useCallback(() => {
-    const groups = useSandboxStore.getState().sandboxes.find((s) => s.id === sandboxId)?.groups ?? [];
-    const { panX, panY, scale } = computeFitViewport(
-      groups,
-      window.innerWidth,
-      window.innerHeight - 68
-    );
-    setViewport(panX, panY, scale);
-  }, [sandboxId, setViewport]);
-
-  // Frame the whole space once the canvas is available (it may arrive over the network)
-  useEffect(() => {
-    if (!sandbox || framedSandboxId.current === sandboxId) return;
-    framedSandboxId.current = sandboxId;
-    fitToContent();
-  }, [sandbox, sandboxId, fitToContent]);
+  const [isExporting, setIsExporting] = useState(false);
+  const framedGroupId = useRef<string | null>(null);
 
   const showToast = (message: string) => {
     setToast(message);
     setTimeout(() => setToast(''), 2600);
   };
+
+  const fitToContent = useCallback(() => {
+    const { panX, panY, scale } = computeFitViewport(window.innerWidth, window.innerHeight - TOP_OFFSET);
+    setViewport(panX, panY, scale);
+  }, [setViewport]);
 
   // Join the realtime room for this sandbox
   useEffect(() => {
@@ -57,6 +65,20 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
       stopPresence();
     };
   }, [sandboxId, setActiveSandboxId]);
+
+  // Land on my own 모둠 once the canvas is known
+  useEffect(() => {
+    if (!sandbox || activeGroupId) return;
+    const preferred = sandbox.groups.find((g) => g.id === myGroupId) ?? sandbox.groups[0];
+    if (preferred) setActiveGroupId(preferred.id);
+  }, [sandbox, activeGroupId, myGroupId, setActiveGroupId]);
+
+  // Frame each group's page the first time it is opened
+  useEffect(() => {
+    if (!activeGroupId || framedGroupId.current === activeGroupId) return;
+    framedGroupId.current = activeGroupId;
+    fitToContent();
+  }, [activeGroupId, fitToContent]);
 
   // Broadcast presence once the participant has identified themselves.
   // Identity changes are pushed separately so peers never see a leave/rejoin flicker.
@@ -81,6 +103,85 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
     return () => clearTimeout(timer);
   }, [isGuestMode, sandbox, sandboxId]);
 
+  const countFor = useCallback(
+    (groupId: string) => elements.filter((el) => el.sandboxId === sandboxId && el.groupId === groupId).length,
+    [elements, sandboxId]
+  );
+
+  /**
+   * Captures each 모둠 page into a landscape PDF. The live canvas is panned and
+   * zoomed, so we snapshot an offscreen copy pinned at 1:1 instead — that way the
+   * export always covers the whole page regardless of where the user is looking.
+   */
+  const exportPdf = async (groupIds: string[], filename: string) => {
+    if (groupIds.length === 0) return;
+    setIsExporting(true);
+    const restoreGroupId = activeGroupId;
+    (document.activeElement as HTMLElement | null)?.blur?.();
+
+    try {
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: [GROUP_PAGE.width, GROUP_PAGE.height],
+      });
+
+      for (let i = 0; i < groupIds.length; i++) {
+        setActiveGroupId(groupIds[i]);
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        const world = document.querySelector('[data-canvas-world="true"]') as HTMLElement | null;
+        if (!world) continue;
+
+        const stage = document.createElement('div');
+        stage.style.cssText = `position:fixed;left:-100000px;top:0;width:${GROUP_PAGE.width}px;height:${GROUP_PAGE.height}px;overflow:hidden;background:#ffffff;`;
+
+        const clone = world.cloneNode(true) as HTMLElement;
+        clone.style.transform = 'none';
+        clone.style.left = '0px';
+        clone.style.top = '0px';
+        clone.querySelectorAll('[data-presence-layer="true"]').forEach((el) => el.remove());
+        // The group badge normally floats above the page edge, which the export crops off
+        const badge = clone.querySelector('[data-group-page="true"] > div') as HTMLElement | null;
+        if (badge) badge.style.top = '16px';
+        stage.appendChild(clone);
+        document.body.appendChild(stage);
+
+        try {
+          const canvas = await html2canvas(stage, {
+            backgroundColor: '#ffffff',
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+          });
+          if (i > 0) pdf.addPage([GROUP_PAGE.width, GROUP_PAGE.height], 'landscape');
+          // JPEG keeps a multi-group export small enough to email or print
+          pdf.addImage(
+            canvas.toDataURL('image/jpeg', 0.92),
+            'JPEG',
+            0,
+            0,
+            GROUP_PAGE.width,
+            GROUP_PAGE.height
+          );
+        } finally {
+          stage.remove();
+        }
+      }
+
+      pdf.save(filename);
+      showToast('PDF로 저장했습니다.');
+    } catch (err) {
+      console.error('Sandbox PDF export failed:', err);
+      showToast('PDF 저장에 실패했습니다.');
+    } finally {
+      if (restoreGroupId) setActiveGroupId(restoreGroupId);
+      setIsExporting(false);
+    }
+  };
+
+  const safeTitle = (sandbox?.title || 'canvas').replace(/[^\w\sㄱ-힣]/g, '').trim() || 'canvas';
+
   if (!sandbox) {
     return (
       <div style={styles.emptyState}>
@@ -100,15 +201,29 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
 
   return (
     <div style={styles.root}>
-      <SandboxHeader
+      <SandboxHeader sandbox={sandbox} isGuestMode={isGuestMode} onExit={onExit} onToast={showToast} />
+
+      <GroupTabs
         sandbox={sandbox}
+        activeGroupId={activeGroupId}
+        myGroupId={myGroupId}
+        countFor={countFor}
         isGuestMode={isGuestMode}
-        onExit={onExit}
-        onToast={showToast}
+        isExporting={isExporting}
+        onSelect={setActiveGroupId}
+        onAddGroup={() => {
+          const name = window.prompt('새 모둠 이름', `${sandbox.groups.length + 1}모둠`);
+          if (name && name.trim()) addGroup(sandbox.id, name.trim());
+        }}
+        onExportCurrent={() =>
+          activeGroupId &&
+          exportPdf([activeGroupId], `${safeTitle}_${activeGroup?.name || '모둠'}.pdf`)
+        }
+        onExportAll={() => exportPdf(sandbox.groups.map((g) => g.id), `${safeTitle}_전체모둠.pdf`)}
       />
 
       <div style={styles.canvasArea}>
-        <SandboxCanvas sandbox={sandbox} canEdit={canEdit && !needsJoin} />
+        <SandboxCanvas sandbox={sandbox} group={activeGroup} canEdit={canEdit && !needsJoin} />
       </div>
 
       <SandboxToolbar canEdit={canEdit && !needsJoin} onFitToContent={fitToContent} />
@@ -120,6 +235,7 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
           onJoin={(name, groupId) => {
             const group = sandbox.groups.find((g) => g.id === groupId);
             setIdentity(name, groupId, group?.color || myColor);
+            if (groupId) setActiveGroupId(groupId);
             setHasJoined(true);
           }}
         />
@@ -138,7 +254,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   canvasArea: {
     position: 'absolute',
-    top: 68,
+    top: TOP_OFFSET,
     left: 0,
     right: 0,
     bottom: 0,

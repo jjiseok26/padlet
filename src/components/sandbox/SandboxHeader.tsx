@@ -22,6 +22,7 @@ export const SandboxHeader: React.FC<Props> = ({ sandbox, isGuestMode, onExit, o
     removeGroup,
     clearGroupElements,
     updateSandbox,
+    setActiveGroupId,
   } = useSandboxStore();
   const peers = usePresenceStore((state) => state.peers);
 
@@ -170,7 +171,10 @@ export const SandboxHeader: React.FC<Props> = ({ sandbox, isGuestMode, onExit, o
                     }}
                   >
                     <button
-                      onClick={() => setIdentity(myName, group.id, group.color)}
+                      onClick={() => {
+                        setIdentity(myName, group.id, group.color);
+                        setActiveGroupId(group.id);
+                      }}
                       style={styles.groupSelect}
                       title="이 모둠으로 참여"
                     >

@@ -21,10 +21,12 @@ import {
   Download,
   HardDrive,
   RefreshCw,
+  PenTool,
   User as UserIcon
 } from 'lucide-react';
 import { GuideModal } from '../board/GuideModal';
 import { SandboxSection } from '../sandbox/SandboxSection';
+import { useSandboxStore } from '../../store/useSandboxStore';
 
 export const Dashboard: React.FC = () => {
   const { 
@@ -44,6 +46,9 @@ export const Dashboard: React.FC = () => {
     lastDriveSyncTime 
   } = useAuthStore();
 
+  const sandboxes = useSandboxStore((state) => state.sandboxes);
+
+  const [activeTab, setActiveTab] = useState<'boards' | 'canvas'>('boards');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
@@ -326,9 +331,34 @@ export const Dashboard: React.FC = () => {
           </div>
         </header>
 
-        {/* Collaborative Canvases (sandbox) */}
-        <SandboxSection onToast={showToast} />
+        {/* Workspace switcher */}
+        <div style={styles.workspaceTabs}>
+          <button
+            onClick={() => setActiveTab('boards')}
+            style={{ ...styles.workspaceTab, ...(activeTab === 'boards' ? styles.workspaceTabActive : {}) }}
+          >
+            <Layers size={15} />
+            <span>보드</span>
+            <span style={{ ...styles.tabCount, ...(activeTab === 'boards' ? {} : styles.tabCountIdle) }}>
+              {boards.length}
+            </span>
+          </button>
+          <button
+            onClick={() => setActiveTab('canvas')}
+            style={{ ...styles.workspaceTab, ...(activeTab === 'canvas' ? styles.workspaceTabActive : {}) }}
+          >
+            <PenTool size={15} />
+            <span>모둠 협업 캔버스</span>
+            <span style={{ ...styles.tabCount, ...(activeTab === 'canvas' ? {} : styles.tabCountIdle) }}>
+              {sandboxes.length}
+            </span>
+          </button>
+        </div>
 
+        {activeTab === 'canvas' ? (
+          <SandboxSection onToast={showToast} />
+        ) : (
+        <>
         {/* Filter & Search Controls Row */}
         <div style={styles.filterRow}>
           {/* Search Input */}
@@ -519,6 +549,8 @@ export const Dashboard: React.FC = () => {
           })
         )}
         </div>
+        </>
+        )}
       </div>
 
       {/* GOOGLE ACCOUNT & DRIVE INFO MODAL */}
@@ -829,6 +861,48 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'var(--color-primary)',
     color: '#ffffff',
     fontWeight: 'bold',
+  },
+  workspaceTabs: {
+    display: 'flex',
+    gap: '6px',
+    background: 'rgba(255, 255, 255, 0.7)',
+    border: '1px solid var(--glass-border)',
+    borderRadius: '14px',
+    padding: '5px',
+    alignSelf: 'flex-start',
+    maxWidth: '100%',
+    overflowX: 'auto',
+  },
+  workspaceTab: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '7px',
+    padding: '9px 16px',
+    borderRadius: '10px',
+    border: 'none',
+    background: 'transparent',
+    color: 'var(--text-muted)',
+    fontSize: '0.85rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    whiteSpace: 'nowrap',
+    transition: 'all 0.15s ease',
+  },
+  workspaceTabActive: {
+    background: 'var(--color-primary)',
+    color: '#ffffff',
+    boxShadow: '0 6px 16px rgba(13, 148, 136, 0.25)',
+  },
+  tabCount: {
+    fontSize: '0.7rem',
+    fontWeight: 700,
+    background: 'rgba(255,255,255,0.28)',
+    borderRadius: 999,
+    padding: '1px 7px',
+  },
+  tabCountIdle: {
+    background: 'rgba(15, 55, 80, 0.08)',
   },
   dashboardViewport: {
     width: '100%',
