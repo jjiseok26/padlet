@@ -112,7 +112,7 @@ interface AuthState {
   driveSyncError: string | null;
 
   googleLogin: (userData: { name: string; email?: string; picture?: string; accessToken: string }) => Promise<boolean>;
-  login: (username: string, password: string) => boolean;
+  login: (username?: string, password?: string) => boolean;
   logout: () => void;
   syncWithGoogleDrive: () => Promise<boolean>;
   setDriveSyncStatus: (status: DriveSyncStatus, error?: string | null) => void;
@@ -417,6 +417,14 @@ export const useAuthStore = create<AuthState>()(
 
       googleLogin: async (userData) => {
         try {
+          if (!userData.accessToken || userData.accessToken.startsWith('demo-token-')) {
+            set({
+              driveSyncStatus: 'error',
+              driveSyncError: '유효한 Google 계정 로그인이 필요합니다.'
+            });
+            return false;
+          }
+
           set({
             driveSyncStatus: 'syncing',
             driveSyncError: null
@@ -510,17 +518,8 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      login: (username, password) => {
-        const currentPassword = useBoardStore.getState().adminPassword || 'admin';
-        if (username === 'admin' && password === currentPassword) {
-          set({ 
-            isAuthenticated: true,
-            currentUser: { username: 'admin', role: '교사' }
-          });
-          return true;
-        }
-        return false;
-      },
+      // Admin password login is disabled — Google OAuth only
+      login: () => false,
 
       logout: () => {
         set({
