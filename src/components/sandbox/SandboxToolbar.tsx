@@ -33,9 +33,10 @@ const WIDTHS = [2, 4, 8, 14];
 
 interface Props {
   canEdit: boolean;
+  onFitToContent: () => void;
 }
 
-export const SandboxToolbar: React.FC<Props> = ({ canEdit }) => {
+export const SandboxToolbar: React.FC<Props> = ({ canEdit, onFitToContent }) => {
   const {
     tool,
     setTool,
@@ -47,7 +48,6 @@ export const SandboxToolbar: React.FC<Props> = ({ canEdit }) => {
     panX,
     panY,
     setViewport,
-    resetViewport,
   } = useSandboxStore();
 
   const zoom = (factor: number) => {
@@ -132,7 +132,7 @@ export const SandboxToolbar: React.FC<Props> = ({ canEdit }) => {
         <button onClick={() => zoom(1.1)} title="확대" style={styles.toolBtn}>
           <ZoomIn size={16} />
         </button>
-        <button onClick={resetViewport} title="화면 초기화" style={styles.toolBtn}>
+        <button onClick={onFitToContent} title="전체 모둠 보기" style={styles.toolBtn}>
           <Maximize size={16} />
         </button>
       </div>

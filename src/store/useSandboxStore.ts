@@ -490,6 +490,31 @@ const mergeRemote = (sandbox: Sandbox, remoteElements: SandboxElement[]) => {
 
 let unsubscribeRoom: (() => void) | null = null;
 let joinedSandboxId: string | null = null;
+let catchUpTimer: any = null;
+
+/**
+ * Ask peers for the canvas until we actually have it. The MQTT socket is
+ * usually still connecting on a fresh page load, so a single request would
+ * be dropped and a guest following a share link would never sync.
+ */
+const requestSnapshotUntilSynced = (sandboxId: string) => {
+  if (catchUpTimer) clearInterval(catchUpTimer);
+  let attempts = 0;
+
+  const ask = () => {
+    attempts += 1;
+    const hasSandbox = useSandboxStore.getState().sandboxes.some((s) => s.id === sandboxId);
+    if (hasSandbox || attempts > 25 || joinedSandboxId !== sandboxId) {
+      clearInterval(catchUpTimer);
+      catchUpTimer = null;
+      return;
+    }
+    mqttPublish(roomTopic(sandboxId), { type: 'sandbox-request', senderId: mqttClientId });
+  };
+
+  ask();
+  catchUpTimer = setInterval(ask, 1200);
+};
 
 /** Subscribe to the active sandbox room; call again when the sandbox changes. */
 export const joinSandboxRoom = (sandboxId: string | null): void => {
@@ -497,6 +522,10 @@ export const joinSandboxRoom = (sandboxId: string | null): void => {
 
   unsubscribeRoom?.();
   unsubscribeRoom = null;
+  if (catchUpTimer) {
+    clearInterval(catchUpTimer);
+    catchUpTimer = null;
+  }
   joinedSandboxId = sandboxId;
   if (!sandboxId) return;
 
@@ -521,8 +550,7 @@ export const joinSandboxRoom = (sandboxId: string | null): void => {
     }
   });
 
-  // Ask peers for the current canvas so late joiners catch up
-  mqttPublish(roomTopic(sandboxId), { type: 'sandbox-request', senderId: mqttClientId });
+  requestSnapshotUntilSynced(sandboxId);
 };
 
 export const publishSandboxSnapshot = (sandboxId: string): void => {
@@ -535,6 +563,33 @@ export const publishSandboxSnapshot = (sandboxId: string): void => {
     sandbox,
     elements: state.elements.filter((el) => el.sandboxId === sandboxId),
   });
+};
+
+/** Viewport that frames every 모둠 zone, so a canvas opens showing the whole space. */
+export const computeFitViewport = (
+  groups: SandboxGroup[],
+  viewportWidth: number,
+  viewportHeight: number
+): { panX: number; panY: number; scale: number } => {
+  if (groups.length === 0 || viewportWidth <= 0 || viewportHeight <= 0) {
+    return { panX: 60, panY: 50, scale: 1 };
+  }
+
+  const padding = 90;
+  const minX = Math.min(...groups.map((g) => g.x)) - padding;
+  const minY = Math.min(...groups.map((g) => g.y)) - padding;
+  const maxX = Math.max(...groups.map((g) => g.x + g.width)) + padding;
+  const maxY = Math.max(...groups.map((g) => g.y + g.height)) + padding;
+
+  const contentWidth = maxX - minX;
+  const contentHeight = maxY - minY;
+  const scale = Math.max(0.25, Math.min(1, viewportWidth / contentWidth, viewportHeight / contentHeight));
+
+  return {
+    scale,
+    panX: (viewportWidth - contentWidth * scale) / 2 - minX * scale,
+    panY: (viewportHeight - contentHeight * scale) / 2 - minY * scale,
+  };
 };
 
 export const sandboxPresenceTopic = (sandboxId: string) =>

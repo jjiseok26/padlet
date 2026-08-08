@@ -1,5 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { useSandboxStore, joinSandboxRoom, publishSandboxSnapshot } from '../../store/useSandboxStore';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useSandboxStore,
+  joinSandboxRoom,
+  publishSandboxSnapshot,
+  computeFitViewport,
+} from '../../store/useSandboxStore';
 import { startPresence, stopPresence, updatePresenceIdentity } from '../../store/usePresenceStore';
 import { SandboxCanvas } from './SandboxCanvas';
 import { SandboxHeader } from './SandboxHeader';
@@ -13,11 +18,30 @@ interface Props {
 }
 
 export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onExit }) => {
-  const { sandboxes, myName, myGroupId, myColor, setIdentity, setActiveSandboxId } = useSandboxStore();
+  const { sandboxes, myName, myGroupId, myColor, setIdentity, setActiveSandboxId, setViewport } =
+    useSandboxStore();
   const sandbox = sandboxes.find((s) => s.id === sandboxId);
 
   const [toast, setToast] = useState('');
   const [hasJoined, setHasJoined] = useState(() => Boolean(myName));
+  const framedSandboxId = useRef<string | null>(null);
+
+  const fitToContent = useCallback(() => {
+    const groups = useSandboxStore.getState().sandboxes.find((s) => s.id === sandboxId)?.groups ?? [];
+    const { panX, panY, scale } = computeFitViewport(
+      groups,
+      window.innerWidth,
+      window.innerHeight - 68
+    );
+    setViewport(panX, panY, scale);
+  }, [sandboxId, setViewport]);
+
+  // Frame the whole space once the canvas is available (it may arrive over the network)
+  useEffect(() => {
+    if (!sandbox || framedSandboxId.current === sandboxId) return;
+    framedSandboxId.current = sandboxId;
+    fitToContent();
+  }, [sandbox, sandboxId, fitToContent]);
 
   const showToast = (message: string) => {
     setToast(message);
@@ -87,7 +111,7 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
         <SandboxCanvas sandbox={sandbox} canEdit={canEdit && !needsJoin} />
       </div>
 
-      <SandboxToolbar canEdit={canEdit && !needsJoin} />
+      <SandboxToolbar canEdit={canEdit && !needsJoin} onFitToContent={fitToContent} />
 
       {needsJoin && (
         <JoinSandboxModal

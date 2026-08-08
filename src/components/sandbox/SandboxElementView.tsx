@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { useSandboxStore } from '../../store/useSandboxStore';
 import type { SandboxElement } from '../../store/useSandboxStore';
+import { mqttClientId } from '../../store/useBoardStore';
 
 interface Props {
   element: SandboxElement;
@@ -27,7 +28,11 @@ const SandboxElementViewBase: React.FC<Props> = ({
   onStartDrag,
 }) => {
   const { updateElement, deleteElement } = useSandboxStore();
-  const [isEditingText, setIsEditingText] = useState(element.text === '' && element.type !== 'draw');
+  // Only the author drops straight into edit mode. Otherwise a note someone
+  // else is still typing would open as an empty editor on every other screen.
+  const [isEditingText, setIsEditingText] = useState(
+    element.text === '' && element.type !== 'draw' && element.authorId === mqttClientId
+  );
   const [draftText, setDraftText] = useState(element.text || '');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -36,7 +41,11 @@ const SandboxElementViewBase: React.FC<Props> = ({
   }, [element.text, isEditingText]);
 
   useEffect(() => {
-    if (isEditingText) textareaRef.current?.focus();
+    if (!isEditingText) return;
+    // Focus on the next frame: the click that created this element is still
+    // being dispatched, and the browser would move focus back to <body>.
+    const frame = requestAnimationFrame(() => textareaRef.current?.focus());
+    return () => cancelAnimationFrame(frame);
   }, [isEditingText]);
 
   const commitText = () => {
@@ -193,7 +202,9 @@ const SandboxElementViewBase: React.FC<Props> = ({
           style={styles.textArea}
         />
       ) : (
-        <div style={styles.noteText}>{element.text || '더블클릭해서 작성'}</div>
+        <div style={{ ...styles.noteText, opacity: element.text ? 1 : 0.45 }}>
+          {element.text || '더블클릭해서 작성'}
+        </div>
       )}
       {deleteButton}
       {authorTag}
