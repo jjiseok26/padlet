@@ -7,13 +7,6 @@ const SESSION = JSON.stringify({
   state: {
     isAuthenticated: true,
     currentUser: { username: '선생님', role: '교사' },
-    activeBoardId: 'dashboard',
-    panX: 0,
-    panY: 0,
-    scale: 1,
-    driveSyncStatus: 'idle',
-    lastDriveSyncTime: null,
-    driveSyncError: null,
   },
   version: 0,
 });
@@ -37,7 +30,7 @@ const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 
 await page.goto(BASE);
-await page.evaluate((s) => sessionStorage.setItem('padlet-board-storage-session', s), SESSION);
+await page.evaluate((s) => localStorage.setItem('padlet-auth-local', s), SESSION);
 await page.reload();
 await page.waitForTimeout(1200);
 

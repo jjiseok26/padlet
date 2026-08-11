@@ -1,93 +1,93 @@
 import React from 'react';
-import { Plus, FileDown, Loader2 } from 'lucide-react';
+import { Plus, FileDown, Loader2, X } from 'lucide-react';
 import type { Sandbox } from '../../store/useSandboxStore';
 import { nestedOverlayOn, readableTextOn } from '../../utils/colorContrast';
 
 interface Props {
   sandbox: Sandbox;
   activeGroupId: string | null;
-  myGroupId: string | null;
   countFor: (groupId: string) => number;
   isGuestMode: boolean;
   isExporting: boolean;
   onSelect: (groupId: string) => void;
   onAddGroup: () => void;
+  onRemoveGroup: (groupId: string) => void;
   onExportCurrent: () => void;
   onExportAll: () => void;
 }
 
-/** One tab per 모둠 — each opens that group's own canvas page. */
+/** Left rail listing every 모둠 — each entry opens that group's own canvas. */
 export const GroupTabs: React.FC<Props> = ({
   sandbox,
   activeGroupId,
-  myGroupId,
   countFor,
   isGuestMode,
   isExporting,
   onSelect,
   onAddGroup,
+  onRemoveGroup,
   onExportCurrent,
   onExportAll,
 }) => {
   return (
-    <div className="glass-panel sandbox-group-tabs" style={styles.bar}>
-      <div style={styles.tabScroller}>
+    <aside className="glass-panel sandbox-group-rail" style={styles.rail}>
+      <div className="sandbox-rail-heading" style={styles.heading}>
+        모둠
+      </div>
+
+      <div className="sandbox-rail-list" style={styles.list}>
         {sandbox.groups.map((group) => {
           const active = group.id === activeGroupId;
-          const mine = group.id === myGroupId;
           const label = readableTextOn(group.color);
           return (
-            <button
-              key={group.id}
-              onClick={() => onSelect(group.id)}
-              style={{
-                ...styles.tab,
-                background: active ? group.color : 'transparent',
-                color: active ? label : 'var(--text-main)',
-                borderColor: active ? group.color : 'var(--glass-border)',
-                fontWeight: active ? 700 : 500,
-              }}
-              title={`${group.name} 캔버스 열기`}
-            >
-              <span
+            <div key={group.id} className="sandbox-rail-item" style={styles.item}>
+              <button
+                onClick={() => onSelect(group.id)}
                 style={{
-                  ...styles.dot,
-                  background: active ? label : group.color,
+                  ...styles.tab,
+                  background: active ? group.color : 'transparent',
+                  color: active ? label : 'var(--text-main)',
+                  borderColor: active ? group.color : 'var(--glass-border)',
+                  fontWeight: active ? 700 : 500,
                 }}
-              />
-              <span>{group.name}</span>
-              {mine && (
+                title={`${group.name} 캔버스 열기`}
+              >
+                <span style={{ ...styles.dot, background: active ? label : group.color }} />
+                <span style={styles.tabName}>{group.name}</span>
                 <span
                   style={{
-                    ...styles.mineTag,
-                    background: active ? nestedOverlayOn(group.color) : `${group.color}1f`,
-                    color: active ? label : group.color,
+                    ...styles.count,
+                    background: active ? nestedOverlayOn(group.color) : 'rgba(15,55,80,0.07)',
+                    color: active ? label : 'var(--text-muted)',
                   }}
                 >
-                  내 모둠
+                  {countFor(group.id)}
                 </span>
+              </button>
+
+              {!isGuestMode && sandbox.groups.length > 1 && (
+                <button
+                  onClick={() => onRemoveGroup(group.id)}
+                  className="sandbox-rail-remove"
+                  style={styles.removeBtn}
+                  title={`${group.name} 삭제`}
+                >
+                  <X size={13} />
+                </button>
               )}
-              <span
-                style={{
-                  ...styles.count,
-                  background: active ? nestedOverlayOn(group.color) : 'rgba(15,55,80,0.07)',
-                  color: active ? label : 'var(--text-muted)',
-                }}
-              >
-                {countFor(group.id)}
-              </span>
-            </button>
+            </div>
           );
         })}
 
         {!isGuestMode && (
-          <button onClick={onAddGroup} style={styles.addTab} title="모둠 추가">
-            <Plus size={15} />
+          <button onClick={onAddGroup} style={styles.addBtn} title="모둠 추가">
+            <Plus size={14} />
+            <span className="sandbox-rail-add-label">모둠 추가</span>
           </button>
         )}
       </div>
 
-      <div style={styles.actions}>
+      <div className="sandbox-rail-actions" style={styles.actions}>
         <button
           className="button-premium"
           onClick={onExportCurrent}
@@ -111,60 +111,75 @@ export const GroupTabs: React.FC<Props> = ({
           </button>
         )}
       </div>
-    </div>
+    </aside>
   );
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  bar: {
+  rail: {
     position: 'absolute',
     top: 68,
     left: 0,
-    right: 0,
+    bottom: 0,
+    width: 186,
     zIndex: 65,
     display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    padding: '8px 16px',
+    flexDirection: 'column',
+    gap: 10,
+    padding: '14px 12px',
     borderRadius: 0,
+    borderTop: 'none',
+    borderBottom: 'none',
     borderLeft: 'none',
-    borderRight: 'none',
   },
-  tabScroller: {
+  heading: {
+    fontSize: '0.68rem',
+    fontWeight: 700,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    color: 'var(--text-muted)',
+    paddingLeft: 4,
+  },
+  list: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 6,
+    overflowY: 'auto',
+    flex: 1,
+    minHeight: 0,
+  },
+  item: {
+    position: 'relative',
     display: 'flex',
     alignItems: 'center',
-    gap: 6,
-    overflowX: 'auto',
-    flex: 1,
-    minWidth: 0,
-    paddingBottom: 2,
   },
   tab: {
+    flex: 1,
+    minWidth: 0,
     display: 'flex',
     alignItems: 'center',
-    gap: 7,
-    padding: '7px 14px',
-    borderRadius: 999,
+    gap: 8,
+    padding: '9px 12px',
+    borderRadius: 10,
     border: '1.5px solid var(--glass-border)',
     cursor: 'pointer',
     fontSize: '0.82rem',
     fontFamily: 'inherit',
-    whiteSpace: 'nowrap',
-    flexShrink: 0,
+    textAlign: 'left',
     transition: 'all 0.15s ease',
+  },
+  tabName: {
+    flex: 1,
+    minWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
   dot: {
     width: 9,
     height: 9,
     borderRadius: '50%',
     flexShrink: 0,
-  },
-  mineTag: {
-    fontSize: '0.6rem',
-    fontWeight: 700,
-    borderRadius: 999,
-    padding: '1px 7px',
   },
   count: {
     fontSize: '0.66rem',
@@ -173,27 +188,49 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '1px 7px',
     minWidth: 20,
     textAlign: 'center',
+    flexShrink: 0,
   },
-  addTab: {
-    width: 32,
-    height: 32,
+  removeBtn: {
+    position: 'absolute',
+    right: -6,
+    top: -6,
+    width: 20,
+    height: 20,
     borderRadius: '50%',
-    border: '1.5px dashed rgba(15,55,80,0.22)',
-    background: 'transparent',
-    color: 'var(--text-muted)',
-    display: 'flex',
+    border: '1px solid var(--glass-border)',
+    background: 'var(--bg-card-solid)',
+    color: '#dc2626',
+    display: 'none',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
+    padding: 0,
+    boxShadow: '0 3px 8px rgba(22, 50, 74, 0.18)',
+  },
+  addBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    padding: '9px 12px',
+    borderRadius: 10,
+    border: '1.5px dashed rgba(15,55,80,0.22)',
+    background: 'transparent',
+    color: 'var(--text-muted)',
+    cursor: 'pointer',
+    fontSize: '0.78rem',
+    fontFamily: 'inherit',
     flexShrink: 0,
   },
   actions: {
     display: 'flex',
+    flexDirection: 'column',
     gap: 6,
     flexShrink: 0,
   },
   pdfBtn: {
-    padding: '7px 12px',
+    justifyContent: 'center',
+    padding: '8px 10px',
     fontSize: '0.78rem',
   },
 };

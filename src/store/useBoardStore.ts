@@ -572,8 +572,15 @@ export const useAuthStore = create<AuthState>()(
       setScale: (scale) => set({ scale }),
     }),
     {
-      name: 'padlet-board-storage-session',
-      storage: createJSONStorage(() => sessionStorage),
+      // localStorage so signing in once covers every tab of the same browser.
+      name: 'padlet-auth-local',
+      storage: createJSONStorage(() => localStorage),
+      // Only the sign-in itself is shared. Which board or canvas you are
+      // looking at stays per tab, so a new tab opens on the dashboard.
+      partialize: (state) => ({
+        isAuthenticated: state.isAuthenticated,
+        currentUser: state.currentUser,
+      }),
     }
   )
 );

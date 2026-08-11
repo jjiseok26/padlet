@@ -22,8 +22,6 @@ interface Props {
   onExit: () => void;
 }
 
-const TOP_OFFSET = 68 + 49; // header + group tab bar
-
 export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onExit }) => {
   const {
     sandboxes,
@@ -37,6 +35,7 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
     setActiveGroupId,
     setViewport,
     addGroup,
+    removeGroup,
   } = useSandboxStore();
 
   const teacherName = useAuthStore((state) => state.currentUser?.username);
@@ -66,7 +65,13 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
   };
 
   const fitToContent = useCallback(() => {
-    const { panX, panY, scale } = computeFitViewport(window.innerWidth, window.innerHeight - TOP_OFFSET);
+    // Measure the canvas itself: the 모둠 rail sits beside it on desktop and
+    // above it on phones, so window size alone would frame the page wrongly.
+    const area = document.querySelector('[data-canvas-bg="true"]')?.getBoundingClientRect();
+    const { panX, panY, scale } = computeFitViewport(
+      area?.width || window.innerWidth,
+      area?.height || window.innerHeight - 68
+    );
     setViewport(panX, panY, scale);
   }, [setViewport]);
 
@@ -243,7 +248,6 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
       <GroupTabs
         sandbox={sandbox}
         activeGroupId={activeGroupId}
-        myGroupId={myGroupId}
         countFor={countFor}
         isGuestMode={isGuestMode}
         isExporting={isExporting}
@@ -257,6 +261,18 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
           const name = window.prompt('새 모둠 이름', `${sandbox.groups.length + 1}모둠`);
           if (name && name.trim()) addGroup(sandbox.id, name.trim());
         }}
+        onRemoveGroup={(groupId) => {
+          const group = sandbox.groups.find((g) => g.id === groupId);
+          if (!group) return;
+          const count = countFor(groupId);
+          const warning = count > 0 ? `\n\n이 모둠의 작업 ${count}개도 함께 삭제됩니다.` : '';
+          if (!window.confirm(`'${group.name}' 모둠을 삭제할까요?${warning}`)) return;
+          if (groupId === activeGroupId) {
+            const next = sandbox.groups.find((g) => g.id !== groupId);
+            setActiveGroupId(next ? next.id : null);
+          }
+          removeGroup(sandbox.id, groupId);
+        }}
         onExportCurrent={() =>
           activeGroupId &&
           exportPdf([activeGroupId], `${safeTitle}_${activeGroup?.name || '모둠'}.pdf`)
@@ -264,7 +280,7 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
         onExportAll={() => exportPdf(sandbox.groups.map((g) => g.id), `${safeTitle}_전체모둠.pdf`)}
       />
 
-      <div style={styles.canvasArea}>
+      <div className="sandbox-canvas-area">
         <SandboxCanvas sandbox={sandbox} group={activeGroup} canEdit={canEdit} />
       </div>
 
@@ -280,13 +296,6 @@ const styles: Record<string, React.CSSProperties> = {
     position: 'absolute',
     inset: 0,
     overflow: 'hidden',
-  },
-  canvasArea: {
-    position: 'absolute',
-    top: TOP_OFFSET,
-    left: 0,
-    right: 0,
-    bottom: 0,
   },
   emptyState: {
     position: 'absolute',

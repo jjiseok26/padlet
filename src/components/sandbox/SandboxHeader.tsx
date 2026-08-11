@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Home, Share2, Users, Plus, Trash2, Download, Wifi, WifiOff, X, Eraser } from 'lucide-react';
+import { Home, Share2, Download, Wifi, WifiOff, X, Eraser } from 'lucide-react';
 import { useSandboxStore } from '../../store/useSandboxStore';
 import type { Sandbox } from '../../store/useSandboxStore';
 import { usePresenceStore } from '../../store/usePresenceStore';
@@ -20,16 +20,12 @@ export const SandboxHeader: React.FC<Props> = ({ sandbox, isGuestMode, onExit, o
     myName,
     myColor,
     setIdentity,
-    addGroup,
-    removeGroup,
     clearGroupElements,
     updateSandbox,
-    setActiveGroupId,
   } = useSandboxStore();
   const peers = usePresenceStore((state) => state.peers);
 
   const [showGroups, setShowGroups] = useState(false);
-  const [newGroupName, setNewGroupName] = useState('');
   const [titleDraft, setTitleDraft] = useState(sandbox.title);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
 
@@ -143,13 +139,16 @@ export const SandboxHeader: React.FC<Props> = ({ sandbox, isGuestMode, onExit, o
             {peerList.length > 4 && <span style={styles.moreCount}>+{peerList.length - 4}</span>}
           </div>
 
-          <button className="button-premium" onClick={() => setShowGroups(true)} title="모둠 관리">
-            <Users size={16} />
-            <span>모둠 {myGroup ? `· ${myGroup.name}` : ''}</span>
-          </button>
-
           {!isGuestMode && (
             <>
+              <button
+                className="button-premium"
+                onClick={() => setShowGroups(true)}
+                title="모둠별 작업 비우기"
+              >
+                <Eraser size={16} />
+                <span>작업 정리</span>
+              </button>
               <button className="button-premium active" onClick={handleShare} title="참여 링크 복사">
                 <Share2 size={16} />
                 <span>참여 링크</span>
@@ -170,95 +169,45 @@ export const SandboxHeader: React.FC<Props> = ({ sandbox, isGuestMode, onExit, o
             onClick={(e) => e.stopPropagation()}
           >
             <div style={styles.panelHeader}>
-              <h2 style={{ margin: 0 }}>모둠 관리</h2>
+              <h2 style={{ margin: 0 }}>모둠 작업 정리</h2>
               <button onClick={() => setShowGroups(false)} style={styles.closeBtn}>
                 <X size={18} />
               </button>
             </div>
 
             <p style={styles.hint}>
-              내 모둠을 고르면 그 영역이 강조되고, 그 안에 만든 작업이 자동으로 모둠에 기록됩니다.
+              모둠 이름은 그대로 두고 그 모둠 캔버스의 작업만 비웁니다. 모둠 추가와 삭제는 왼쪽
+              모둠 목록에서 할 수 있습니다.
             </p>
 
             <div style={styles.groupList}>
               {sandbox.groups.map((group) => {
-                const active = group.id === myGroupId;
+                const count = countFor(group.id);
                 return (
-                  <div
-                    key={group.id}
-                    style={{
-                      ...styles.groupRow,
-                      borderColor: active ? group.color : 'var(--glass-border)',
-                      background: active ? `${group.color}12` : 'rgba(255,255,255,0.65)',
-                    }}
-                  >
+                  <div key={group.id} style={styles.groupRow}>
+                    <div style={styles.groupSelect}>
+                      <span style={{ ...styles.groupDot, background: group.color }} />
+                      <span>{group.name}</span>
+                      <span style={styles.countTag}>{count}개</span>
+                    </div>
+
                     <button
                       onClick={() => {
-                        setIdentity(myName, group.id, group.color);
-                        setActiveGroupId(group.id);
+                        if (count === 0) return;
+                        if (window.confirm(`'${group.name}'의 작업 ${count}개를 모두 지울까요?`)) {
+                          clearGroupElements(sandbox.id, group.id);
+                        }
                       }}
-                      style={styles.groupSelect}
-                      title="이 모둠으로 참여"
+                      disabled={count === 0}
+                      style={{ ...styles.iconBtn, opacity: count === 0 ? 0.4 : 1 }}
+                      title={count === 0 ? '비울 작업이 없습니다' : '이 모둠 작업 비우기'}
                     >
-                      <span style={{ ...styles.groupDot, background: group.color }} />
-                      <span style={{ fontWeight: active ? 700 : 500 }}>{group.name}</span>
-                      <span style={styles.countTag}>{countFor(group.id)}개</span>
+                      <Eraser size={14} />
                     </button>
-
-                    {!isGuestMode && (
-                      <div style={{ display: 'flex', gap: 4 }}>
-                        <button
-                          onClick={() => {
-                            if (window.confirm(`'${group.name}'의 작업을 모두 지울까요?`)) {
-                              clearGroupElements(sandbox.id, group.id);
-                            }
-                          }}
-                          style={styles.iconBtn}
-                          title="이 모둠 작업 비우기"
-                        >
-                          <Eraser size={14} />
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (window.confirm(`'${group.name}' 모둠을 삭제할까요? 작업은 남습니다.`)) {
-                              removeGroup(sandbox.id, group.id);
-                            }
-                          }}
-                          style={{ ...styles.iconBtn, color: '#dc2626' }}
-                          title="모둠 삭제"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    )}
                   </div>
                 );
               })}
             </div>
-
-            {!isGuestMode && (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (!newGroupName.trim()) return;
-                  addGroup(sandbox.id, newGroupName);
-                  setNewGroupName('');
-                }}
-                style={styles.addRow}
-              >
-                <input
-                  value={newGroupName}
-                  onChange={(e) => setNewGroupName(e.target.value)}
-                  placeholder="새 모둠 이름"
-                  style={styles.input}
-                  maxLength={20}
-                />
-                <button type="submit" className="button-premium active" style={{ padding: '9px 14px' }}>
-                  <Plus size={15} />
-                  <span>추가</span>
-                </button>
-              </form>
-            )}
           </div>
         </div>
       )}

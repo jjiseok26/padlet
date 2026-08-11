@@ -378,6 +378,21 @@ p {
   display: flex !important;
 }
 
+/* --- Collaborative canvas: 모둠 rail ------------------------------------- */
+/* Delete only appears on the row you are pointing at, so the rail stays calm */
+.sandbox-rail-item:hover .sandbox-rail-remove,
+.sandbox-rail-remove:focus-visible {
+  display: flex !important;
+}
+
+.sandbox-canvas-area {
+  position: absolute;
+  top: 68px;
+  left: 186px;
+  right: 0;
+  bottom: 0;
+}
+
 /* --- Collaborative canvas on small screens ------------------------------- */
 @media (max-width: 820px) {
   /* Keep the tool palette on screen and reachable above the browser chrome */
@@ -424,8 +439,51 @@ p {
     display: none !important;
   }
 
-  .sandbox-group-tabs {
+  /* Not enough width for a side rail on a phone, so lay it along the top */
+  .sandbox-group-rail {
+    top: 68px !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: auto !important;
+    width: auto !important;
+    height: 54px !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 6px !important;
     padding: 6px 10px !important;
+    border-left: none !important;
+  }
+
+  .sandbox-rail-heading {
+    display: none !important;
+  }
+
+  .sandbox-rail-list {
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    align-items: center !important;
+  }
+
+  .sandbox-rail-item {
+    flex-shrink: 0 !important;
+  }
+
+  .sandbox-rail-remove {
+    display: flex !important;
+  }
+
+  .sandbox-rail-add-label {
+    display: none !important;
+  }
+
+  .sandbox-rail-actions {
+    flex-direction: row !important;
+  }
+
+  .sandbox-canvas-area {
+    top: 122px !important;
+    left: 0 !important;
   }
 }
 

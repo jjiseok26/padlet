@@ -13,13 +13,6 @@ const SESSION = JSON.stringify({
   state: {
     isAuthenticated: true,
     currentUser: { username: '선생님', role: '교사' },
-    activeBoardId: 'dashboard',
-    panX: 0,
-    panY: 0,
-    scale: 1,
-    driveSyncStatus: 'idle',
-    lastDriveSyncTime: null,
-    driveSyncError: null,
   },
   version: 0,
 });
@@ -107,7 +100,7 @@ const AUDIT = () => {
 const browser = await chromium.launch({ executablePath: '/usr/local/bin/google-chrome' });
 const page = await browser.newPage({ viewport: { width: 1360, height: 900 } });
 await page.goto(BASE);
-await page.evaluate((s) => sessionStorage.setItem('padlet-board-storage-session', s), SESSION);
+await page.evaluate((s) => localStorage.setItem('padlet-auth-local', s), SESSION);
 await page.reload();
 await page.waitForTimeout(1200);
 
@@ -156,7 +149,7 @@ await slider.fill('8'); // exercise every group colour at once
 await page.getByRole('button', { name: /캔버스 만들고 열기/ }).click();
 await page.waitForTimeout(1200);
 
-const tabs = page.locator('.sandbox-group-tabs button[title$="캔버스 열기"]');
+const tabs = page.locator('.sandbox-group-rail button[title$="캔버스 열기"]');
 const tabCount = await tabs.count();
 console.log(`\n(모둠 tabs found: ${tabCount})`);
 for (const groupIndex of [0, 2, 3, 5]) {

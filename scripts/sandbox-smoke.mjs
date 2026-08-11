@@ -14,13 +14,6 @@ const SESSION = JSON.stringify({
   state: {
     isAuthenticated: true,
     currentUser: { username: '선생님', role: '교사' },
-    activeBoardId: 'dashboard',
-    panX: 0,
-    panY: 0,
-    scale: 1,
-    driveSyncStatus: 'idle',
-    lastDriveSyncTime: null,
-    driveSyncError: null,
   },
   version: 0,
 });
@@ -45,7 +38,7 @@ async function main() {
   teacher.on('pageerror', (e) => errors.push(`[teacher pageerror] ${e.message}`));
 
   await teacher.goto(BASE);
-  await teacher.evaluate((s) => sessionStorage.setItem('padlet-board-storage-session', s), SESSION);
+  await teacher.evaluate((s) => localStorage.setItem('padlet-auth-local', s), SESSION);
   await teacher.reload();
   await teacher.waitForTimeout(1200);
 

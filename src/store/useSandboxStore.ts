@@ -53,6 +53,8 @@ export interface Sandbox {
   description: string;
   background: string;
   createdAt: string;
+  /** Bumped on every change so an older snapshot cannot undo a newer one. */
+  updatedAt?: string;
   groups: SandboxGroup[];
   /** Tombstones so deletes survive peer merges. */
   deletedElementIds?: string[];
@@ -85,6 +87,10 @@ export const SANDBOX_BACKGROUNDS = [
 const uid = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
 
 const nowISO = () => new Date().toISOString();
+
+const touch = (sandbox: Sandbox): Sandbox => ({ ...sandbox, updatedAt: nowISO() });
+
+const timeOf = (value?: string): number => (value ? new Date(value).getTime() : 0);
 
 interface StoredIdentity {
   name: string;
@@ -269,6 +275,7 @@ export const useSandboxStore = create<SandboxState>((set, get) => {
         description: description.trim(),
         background: background || 'grid-light',
         createdAt: nowISO(),
+        updatedAt: nowISO(),
         groups,
         deletedElementIds: [],
         allowGuestEdit: true,
@@ -291,7 +298,7 @@ export const useSandboxStore = create<SandboxState>((set, get) => {
     },
 
     updateSandbox: (sandboxId, updates) => {
-      const sandboxes = get().sandboxes.map((s) => (s.id === sandboxId ? { ...s, ...updates } : s));
+      const sandboxes = get().sandboxes.map((s) => (s.id === sandboxId ? touch({ ...s, ...updates }) : s));
       set({ sandboxes });
       commit(sandboxes, get().elements);
     },
@@ -299,8 +306,8 @@ export const useSandboxStore = create<SandboxState>((set, get) => {
     importSandbox: (sandbox, importedElements) => {
       const exists = get().sandboxes.some((s) => s.id === sandbox.id);
       const sandboxes = exists
-        ? get().sandboxes.map((s) => (s.id === sandbox.id ? { ...s, ...sandbox } : s))
-        : [...get().sandboxes, sandbox];
+        ? get().sandboxes.map((s) => (s.id === sandbox.id ? touch({ ...s, ...sandbox }) : s))
+        : [...get().sandboxes, touch(sandbox)];
 
       const importedIds = new Set(importedElements.map((el) => el.id));
       const elements = [...get().elements.filter((el) => !importedIds.has(el.id)), ...importedElements];
@@ -322,7 +329,7 @@ export const useSandboxStore = create<SandboxState>((set, get) => {
           width: GROUP_PAGE.width,
           height: GROUP_PAGE.height,
         };
-        return { ...s, groups: [...s.groups, group] };
+        return touch({ ...s, groups: [...s.groups, group] });
       });
       set({ sandboxes });
       commit(sandboxes, get().elements);
@@ -331,7 +338,7 @@ export const useSandboxStore = create<SandboxState>((set, get) => {
     updateGroup: (sandboxId, groupId, updates) => {
       const sandboxes = get().sandboxes.map((s) =>
         s.id === sandboxId
-          ? { ...s, groups: s.groups.map((g) => (g.id === groupId ? { ...g, ...updates } : g)) }
+          ? touch({ ...s, groups: s.groups.map((g) => (g.id === groupId ? { ...g, ...updates } : g)) })
           : s
       );
       set({ sandboxes });
@@ -339,14 +346,24 @@ export const useSandboxStore = create<SandboxState>((set, get) => {
     },
 
     removeGroup: (sandboxId, groupId) => {
-      const sandboxes = get().sandboxes.map((s) =>
-        s.id === sandboxId ? { ...s, groups: s.groups.filter((g) => g.id !== groupId) } : s
-      );
-      // Keep the work, just detach it from the removed zone
-      const elements = get().elements.map((el) =>
-        el.sandboxId === sandboxId && el.groupId === groupId ? { ...el, groupId: null } : el
-      );
+      // Each 모둠 owns a page, so its work goes with it — leaving the elements
+      // behind would only hide them on a page nobody can open.
+      const removed = get()
+        .elements.filter((el) => el.sandboxId === sandboxId && el.groupId === groupId)
+        .map((el) => el.id);
+
+      const sandboxes = get().sandboxes.map((s) => {
+        if (s.id !== sandboxId) return s;
+        const tombstones = new Set([...(s.deletedElementIds || []), ...removed]);
+        return touch({
+          ...s,
+          groups: s.groups.filter((g) => g.id !== groupId),
+          deletedElementIds: Array.from(tombstones),
+        });
+      });
+      const elements = get().elements.filter((el) => !removed.includes(el.id));
       const myGroupId = get().myGroupId === groupId ? null : get().myGroupId;
+
       set({ sandboxes, elements, myGroupId });
       commit(sandboxes, elements);
     },
@@ -390,7 +407,7 @@ export const useSandboxStore = create<SandboxState>((set, get) => {
         sandboxes = sandboxes.map((s) => {
           if (s.id !== target.sandboxId) return s;
           const tombstones = s.deletedElementIds || [];
-          return tombstones.includes(id) ? s : { ...s, deletedElementIds: [...tombstones, id] };
+          return tombstones.includes(id) ? s : touch({ ...s, deletedElementIds: [...tombstones, id] });
         });
       }
 
@@ -408,7 +425,7 @@ export const useSandboxStore = create<SandboxState>((set, get) => {
       const sandboxes = get().sandboxes.map((s) => {
         if (s.id !== sandboxId) return s;
         const tombstones = new Set([...(s.deletedElementIds || []), ...removed]);
-        return { ...s, deletedElementIds: Array.from(tombstones) };
+        return touch({ ...s, deletedElementIds: Array.from(tombstones) });
       });
 
       set({ elements, sandboxes, selectedElementId: null });
@@ -492,8 +509,14 @@ const mergeRemote = (sandbox: Sandbox, remoteElements: SandboxElement[]) => {
     ...(sandbox.deletedElementIds || []),
   ]);
 
+  // Group and title edits are last-write-wins on updatedAt. Without this an
+  // older snapshot — a stale retained copy, or a peer that has not caught up —
+  // could bring a deleted 모둠 back.
+  const remoteIsNewer = !localSandbox || timeOf(sandbox.updatedAt) >= timeOf(localSandbox.updatedAt);
+  const winner = remoteIsNewer ? sandbox : localSandbox;
+
   const mergedSandbox: Sandbox = {
-    ...sandbox,
+    ...winner,
     deletedElementIds: Array.from(tombstones),
   };
 
@@ -575,7 +598,9 @@ export const joinSandboxRoom = (sandboxId: string | null): void => {
   // The retained copy is delivered as soon as we subscribe, so a visitor with
   // only the link gets the canvas without anyone else being online.
   unsubscribeArchive = mqttSubscribe(archiveTopic(sandboxId), (payload) => {
-    if (!payload || !payload.sandbox) return;
+    // Skip our own copy coming back: applying it could undo an edit we made
+    // after publishing it.
+    if (!payload || !payload.sandbox || payload.senderId === mqttClientId) return;
     mergeRemote(payload.sandbox as Sandbox, (payload.elements || []) as SandboxElement[]);
   });
 
