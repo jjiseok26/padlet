@@ -62,15 +62,16 @@ export interface Sandbox {
 const STORAGE_KEY = 'padlet-sandbox-storage-local';
 const IDENTITY_KEY = 'padlet-sandbox-identity';
 
+/** Deep enough that white labels on these fills clear WCAG AA. */
 export const GROUP_COLORS = [
-  '#0ea5e9',
-  '#10b981',
-  '#f59e0b',
-  '#ef4444',
-  '#8b5cf6',
-  '#ec4899',
-  '#14b8a6',
-  '#6366f1',
+  '#0369a1',
+  '#047857',
+  '#b45309',
+  '#b91c1c',
+  '#6d28d9',
+  '#be185d',
+  '#0f766e',
+  '#4338ca',
 ];
 
 export const SANDBOX_BACKGROUNDS = [

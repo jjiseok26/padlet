@@ -897,7 +897,8 @@ const styles: Record<string, React.CSSProperties> = {
   tabCount: {
     fontSize: '0.7rem',
     fontWeight: 700,
-    background: 'rgba(255,255,255,0.28)',
+    // Darkens the active tab behind the count so white digits stay legible
+    background: 'rgba(0, 0, 0, 0.26)',
     borderRadius: 999,
     padding: '1px 7px',
   },
@@ -1001,14 +1002,16 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: '4px',
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    // Sits on an arbitrary wallpaper, so it carries its own contrast instead
+    // of following the page theme
+    backgroundColor: 'rgba(12, 24, 38, 0.82)',
     backdropFilter: 'blur(3px)',
     fontSize: '0.65rem',
     fontWeight: 'bold',
-    color: 'var(--text-main)',
+    color: '#ffffff',
     padding: '4px 8px',
     borderRadius: '6px',
-    border: '1px solid var(--glass-border)',
+    border: '1px solid rgba(255, 255, 255, 0.22)',
   },
   cardInfo: {
     padding: '16px',

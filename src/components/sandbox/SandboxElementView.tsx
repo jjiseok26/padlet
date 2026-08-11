@@ -3,6 +3,7 @@ import { Trash2 } from 'lucide-react';
 import { useSandboxStore } from '../../store/useSandboxStore';
 import type { SandboxElement } from '../../store/useSandboxStore';
 import { mqttClientId } from '../../store/useBoardStore';
+import { readableTextOn } from '../../utils/colorContrast';
 
 interface Props {
   element: SandboxElement;
@@ -67,8 +68,15 @@ const SandboxElementViewBase: React.FC<Props> = ({
     ? { outline: '2px solid var(--color-primary)', outlineOffset: 3 }
     : {};
 
+  const tagBackground = groupColor || '#16324a';
   const authorTag = element.authorName ? (
-    <div style={{ ...styles.authorTag, background: groupColor || 'rgba(22,50,74,0.55)' }}>
+    <div
+      style={{
+        ...styles.authorTag,
+        background: tagBackground,
+        color: readableTextOn(tagBackground),
+      }}
+    >
       {element.authorName}
     </div>
   ) : null;
@@ -257,7 +265,6 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 999,
     fontSize: '0.62rem',
     fontWeight: 700,
-    color: '#ffffff',
     whiteSpace: 'nowrap',
     maxWidth: '80%',
     overflow: 'hidden',

@@ -17,10 +17,12 @@
   --bg-column: rgba(255, 255, 255, 0.55);
   --border-column: rgba(15, 55, 80, 0.06);
   --text-main: #16324a;
-  --text-muted: #5b7388;
-  --color-primary: #0d9488;
-  --color-accent: #0284c7;
-  --color-primary-soft: rgba(13, 148, 136, 0.12);
+  /* Darkened so muted text and primary-filled buttons clear WCAG AA (4.5:1);
+     the previous teal only reached 3.7:1 behind white labels. */
+  --text-muted: #4a6377;
+  --color-primary: #0f766e;
+  --color-accent: #0369a1;
+  --color-primary-soft: rgba(15, 118, 110, 0.12);
   --glass-border: rgba(15, 55, 80, 0.08);
   --shadow-soft: 0 10px 30px rgba(22, 50, 74, 0.08);
   --orb-1: rgba(14, 165, 233, 0.28);

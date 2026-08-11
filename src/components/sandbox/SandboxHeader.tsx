@@ -4,6 +4,7 @@ import { useSandboxStore } from '../../store/useSandboxStore';
 import type { Sandbox } from '../../store/useSandboxStore';
 import { usePresenceStore } from '../../store/usePresenceStore';
 import { isMqttConnected } from '../../store/useBoardStore';
+import { readableTextOn } from '../../utils/colorContrast';
 
 interface Props {
   sandbox: Sandbox;
@@ -121,7 +122,8 @@ export const SandboxHeader: React.FC<Props> = ({ sandbox, isGuestMode, onExit, o
               }}
               style={{
                 ...styles.avatar,
-                background: myGroup?.color || 'var(--color-primary)',
+                background: myGroup?.color || '#0f766e',
+                color: readableTextOn(myGroup?.color || '#0f766e'),
                 cursor: 'pointer',
                 padding: 0,
               }}
@@ -130,7 +132,11 @@ export const SandboxHeader: React.FC<Props> = ({ sandbox, isGuestMode, onExit, o
               {(myName || '나').slice(0, 1)}
             </button>
             {peerList.slice(0, 4).map((peer) => (
-              <span key={peer.clientId} style={{ ...styles.avatar, background: peer.color }} title={peer.name}>
+              <span
+                key={peer.clientId}
+                style={{ ...styles.avatar, background: peer.color, color: readableTextOn(peer.color) }}
+                title={peer.name}
+              >
                 {peer.name.slice(0, 1)}
               </span>
             ))}
@@ -326,7 +332,6 @@ const styles: Record<string, React.CSSProperties> = {
     width: 28,
     height: 28,
     borderRadius: '50%',
-    color: '#ffffff',
     fontSize: '0.72rem',
     fontWeight: 700,
     display: 'flex',

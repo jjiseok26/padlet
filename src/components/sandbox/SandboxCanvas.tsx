@@ -4,6 +4,7 @@ import type { Sandbox, SandboxElement, SandboxGroup } from '../../store/useSandb
 import { sendCursor } from '../../store/usePresenceStore';
 import { PresenceCursors } from './PresenceCursors';
 import { SandboxElementView } from './SandboxElementView';
+import { readableTextOn } from '../../utils/colorContrast';
 
 interface SandboxCanvasProps {
   sandbox: Sandbox;
@@ -347,7 +348,15 @@ export const SandboxCanvas: React.FC<SandboxCanvasProps> = ({ sandbox, group, ca
               ...(BACKGROUND_STYLES[sandbox.background] || BACKGROUND_STYLES['grid-light']),
             }}
           >
-            <div style={{ ...styles.pageLabel, background: group.color }}>{group.name}</div>
+            <div
+              style={{
+                ...styles.pageLabel,
+                background: group.color,
+                color: readableTextOn(group.color),
+              }}
+            >
+              {group.name}
+            </div>
           </div>
         )}
 
@@ -440,7 +449,6 @@ const styles: Record<string, React.CSSProperties> = {
     left: 24,
     padding: '5px 16px',
     borderRadius: 999,
-    color: '#ffffff',
     fontSize: '0.8rem',
     fontWeight: 700,
     boxShadow: '0 6px 16px rgba(22, 50, 74, 0.18)',

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Plus, FileDown, Loader2 } from 'lucide-react';
 import type { Sandbox } from '../../store/useSandboxStore';
+import { nestedOverlayOn, readableTextOn } from '../../utils/colorContrast';
 
 interface Props {
   sandbox: Sandbox;
@@ -34,6 +35,7 @@ export const GroupTabs: React.FC<Props> = ({
         {sandbox.groups.map((group) => {
           const active = group.id === activeGroupId;
           const mine = group.id === myGroupId;
+          const label = readableTextOn(group.color);
           return (
             <button
               key={group.id}
@@ -41,7 +43,7 @@ export const GroupTabs: React.FC<Props> = ({
               style={{
                 ...styles.tab,
                 background: active ? group.color : 'transparent',
-                color: active ? '#ffffff' : 'var(--text-main)',
+                color: active ? label : 'var(--text-main)',
                 borderColor: active ? group.color : 'var(--glass-border)',
                 fontWeight: active ? 700 : 500,
               }}
@@ -50,7 +52,7 @@ export const GroupTabs: React.FC<Props> = ({
               <span
                 style={{
                   ...styles.dot,
-                  background: active ? 'rgba(255,255,255,0.85)' : group.color,
+                  background: active ? label : group.color,
                 }}
               />
               <span>{group.name}</span>
@@ -58,8 +60,8 @@ export const GroupTabs: React.FC<Props> = ({
                 <span
                   style={{
                     ...styles.mineTag,
-                    background: active ? 'rgba(255,255,255,0.26)' : `${group.color}1f`,
-                    color: active ? '#ffffff' : group.color,
+                    background: active ? nestedOverlayOn(group.color) : `${group.color}1f`,
+                    color: active ? label : group.color,
                   }}
                 >
                   내 모둠
@@ -68,8 +70,8 @@ export const GroupTabs: React.FC<Props> = ({
               <span
                 style={{
                   ...styles.count,
-                  background: active ? 'rgba(255,255,255,0.24)' : 'rgba(15,55,80,0.07)',
-                  color: active ? '#ffffff' : 'var(--text-muted)',
+                  background: active ? nestedOverlayOn(group.color) : 'rgba(15,55,80,0.07)',
+                  color: active ? label : 'var(--text-muted)',
                 }}
               >
                 {countFor(group.id)}
