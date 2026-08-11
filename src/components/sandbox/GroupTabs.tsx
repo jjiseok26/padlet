@@ -1,5 +1,5 @@
-import React from 'react';
-import { Plus, FileDown, Loader2, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, FileDown, Loader2, X, GripVertical } from 'lucide-react';
 import type { Sandbox } from '../../store/useSandboxStore';
 import { nestedOverlayOn, readableTextOn } from '../../utils/colorContrast';
 
@@ -12,6 +12,7 @@ interface Props {
   onSelect: (groupId: string) => void;
   onAddGroup: () => void;
   onRemoveGroup: (groupId: string) => void;
+  onReorder: (fromIndex: number, toIndex: number) => void;
   onExportCurrent: () => void;
   onExportAll: () => void;
 }
@@ -26,9 +27,19 @@ export const GroupTabs: React.FC<Props> = ({
   onSelect,
   onAddGroup,
   onRemoveGroup,
+  onReorder,
   onExportCurrent,
   onExportAll,
 }) => {
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dropIndex, setDropIndex] = useState<number | null>(null);
+  const canReorder = !isGuestMode && sandbox.groups.length > 1;
+
+  const endDrag = () => {
+    setDragIndex(null);
+    setDropIndex(null);
+  };
+
   return (
     <aside className="glass-panel sandbox-group-rail" style={styles.rail}>
       <div className="sandbox-rail-heading" style={styles.heading}>
@@ -36,11 +47,43 @@ export const GroupTabs: React.FC<Props> = ({
       </div>
 
       <div className="sandbox-rail-list" style={styles.list}>
-        {sandbox.groups.map((group) => {
+        {sandbox.groups.map((group, index) => {
           const active = group.id === activeGroupId;
           const label = readableTextOn(group.color);
+          const isDragging = dragIndex === index;
+          const isDropTarget = dropIndex === index && dragIndex !== null && dragIndex !== index;
           return (
-            <div key={group.id} className="sandbox-rail-item" style={styles.item}>
+            <div
+              key={group.id}
+              className="sandbox-rail-item"
+              style={{
+                ...styles.item,
+                opacity: isDragging ? 0.45 : 1,
+                boxShadow: isDropTarget ? 'inset 0 0 0 2px var(--color-primary)' : 'none',
+                borderRadius: 10,
+              }}
+              draggable={canReorder}
+              onDragStart={(e) => {
+                if (!canReorder) return;
+                setDragIndex(index);
+                e.dataTransfer.effectAllowed = 'move';
+                // Firefox refuses to start a drag without payload
+                e.dataTransfer.setData('text/plain', String(index));
+              }}
+              onDragOver={(e) => {
+                if (dragIndex === null) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                setDropIndex(index);
+              }}
+              onDrop={(e) => {
+                if (dragIndex === null) return;
+                e.preventDefault();
+                onReorder(dragIndex, index);
+                endDrag();
+              }}
+              onDragEnd={endDrag}
+            >
               <button
                 onClick={() => onSelect(group.id)}
                 style={{
@@ -49,11 +92,24 @@ export const GroupTabs: React.FC<Props> = ({
                   color: active ? label : 'var(--text-main)',
                   borderColor: active ? group.color : 'var(--glass-border)',
                   fontWeight: active ? 700 : 500,
+                  cursor: canReorder ? 'grab' : 'pointer',
                 }}
-                title={`${group.name} 캔버스 열기`}
+                title={
+                  canReorder
+                    ? `${group.name} 캔버스 열기 · 드래그해서 순서 변경`
+                    : `${group.name} 캔버스 열기`
+                }
               >
+                {canReorder && (
+                  <GripVertical
+                    size={13}
+                    style={{ flexShrink: 0, opacity: 0.55, color: active ? label : 'var(--text-muted)' }}
+                  />
+                )}
                 <span style={{ ...styles.dot, background: active ? label : group.color }} />
-                <span style={styles.tabName}>{group.name}</span>
+                <span className="sandbox-rail-name" style={styles.tabName}>
+                  {group.name}
+                </span>
                 <span
                   style={{
                     ...styles.count,

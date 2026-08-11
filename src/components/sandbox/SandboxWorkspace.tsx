@@ -36,6 +36,7 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
     setViewport,
     addGroup,
     removeGroup,
+    reorderGroups,
   } = useSandboxStore();
 
   const teacherName = useAuthStore((state) => state.currentUser?.username);
@@ -273,6 +274,7 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
           }
           removeGroup(sandbox.id, groupId);
         }}
+        onReorder={(from, to) => reorderGroups(sandbox.id, from, to)}
         onExportCurrent={() =>
           activeGroupId &&
           exportPdf([activeGroupId], `${safeTitle}_${activeGroup?.name || '모둠'}.pdf`)

@@ -149,7 +149,7 @@ await slider.fill('8'); // exercise every group colour at once
 await page.getByRole('button', { name: /캔버스 만들고 열기/ }).click();
 await page.waitForTimeout(1200);
 
-const tabs = page.locator('.sandbox-group-rail button[title$="캔버스 열기"]');
+const tabs = page.locator('.sandbox-group-rail button[title*="캔버스 열기"]');
 const tabCount = await tabs.count();
 console.log(`\n(모둠 tabs found: ${tabCount})`);
 for (const groupIndex of [0, 2, 3, 5]) {

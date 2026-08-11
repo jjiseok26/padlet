@@ -201,6 +201,7 @@ interface SandboxState {
   addGroup: (sandboxId: string, name: string) => void;
   updateGroup: (sandboxId: string, groupId: string, updates: Partial<Omit<SandboxGroup, 'id'>>) => void;
   removeGroup: (sandboxId: string, groupId: string) => void;
+  reorderGroups: (sandboxId: string, fromIndex: number, toIndex: number) => void;
 
   // Element CRUD
   addElement: (
@@ -366,6 +367,32 @@ export const useSandboxStore = create<SandboxState>((set, get) => {
 
       set({ sandboxes, elements, myGroupId });
       commit(sandboxes, elements);
+    },
+
+    reorderGroups: (sandboxId, fromIndex, toIndex) => {
+      const target = get().sandboxes.find((s) => s.id === sandboxId);
+      if (!target) return;
+      const last = target.groups.length - 1;
+      if (
+        fromIndex === toIndex ||
+        fromIndex < 0 ||
+        toIndex < 0 ||
+        fromIndex > last ||
+        toIndex > last
+      ) {
+        return;
+      }
+
+      const sandboxes = get().sandboxes.map((s) => {
+        if (s.id !== sandboxId) return s;
+        const groups = [...s.groups];
+        const [moved] = groups.splice(fromIndex, 1);
+        groups.splice(toIndex, 0, moved);
+        return touch({ ...s, groups });
+      });
+
+      set({ sandboxes });
+      commit(sandboxes, get().elements);
     },
 
     addElement: (sandboxId, element) => {
