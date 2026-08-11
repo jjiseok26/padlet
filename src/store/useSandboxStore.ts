@@ -471,8 +471,23 @@ export const useSandboxStore = create<SandboxState>((set, get) => {
     },
 
     setTool: (tool) => set({ tool, selectedElementId: tool === 'select' ? get().selectedElementId : null }),
-    setDrawColor: (drawColor) => set({ drawColor }),
-    setStrokeWidth: (strokeWidth) => set({ strokeWidth }),
+
+    // Picking a colour or thickness while something is selected edits it,
+    // which is how you change a shape after drawing it.
+    setDrawColor: (drawColor) => {
+      set({ drawColor });
+      const { selectedElementId } = get();
+      if (selectedElementId) get().updateElement(selectedElementId, { color: drawColor });
+    },
+
+    setStrokeWidth: (strokeWidth) => {
+      set({ strokeWidth });
+      const { selectedElementId, elements } = get();
+      const selected = elements.find((el) => el.id === selectedElementId);
+      if (selected && selected.type !== 'note' && selected.type !== 'text') {
+        get().updateElement(selected.id, { strokeWidth });
+      }
+    },
     setViewport: (panX, panY, scale) => set(scale === undefined ? { panX, panY } : { panX, panY, scale }),
     setSelectedElementId: (selectedElementId) => set({ selectedElementId }),
     resetViewport: () => set({ panX: 0, panY: 0, scale: 1 }),

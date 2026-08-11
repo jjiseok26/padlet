@@ -81,6 +81,47 @@ const SandboxElementViewBase: React.FC<Props> = ({
     </div>
   ) : null;
 
+  const startResize = (e: React.PointerEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const handle = e.currentTarget as HTMLElement;
+    handle.setPointerCapture(e.pointerId);
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startWidth = element.width;
+    const startHeight = element.height;
+    const { scale } = useSandboxStore.getState();
+
+    const onMove = (move: PointerEvent) => {
+      const width = Math.max(16, startWidth + (move.clientX - startX) / scale);
+      const height =
+        element.type === 'line' ? 0 : Math.max(16, startHeight + (move.clientY - startY) / scale);
+      updateElement(element.id, { width, height });
+    };
+    const onUp = () => {
+      handle.removeEventListener('pointermove', onMove);
+      handle.removeEventListener('pointerup', onUp);
+      handle.removeEventListener('pointercancel', onUp);
+    };
+
+    handle.addEventListener('pointermove', onMove);
+    handle.addEventListener('pointerup', onUp);
+    handle.addEventListener('pointercancel', onUp);
+  };
+
+  const resizeHandle =
+    canEdit && isSelected ? (
+      <div
+        onPointerDown={startResize}
+        style={{
+          ...styles.resizeHandle,
+          cursor: element.type === 'line' ? 'ew-resize' : 'nwse-resize',
+        }}
+        title="드래그해서 크기 조절"
+      />
+    ) : null;
+
   const deleteButton =
     canEdit && isSelected ? (
       <button
@@ -141,23 +182,30 @@ const SandboxElementViewBase: React.FC<Props> = ({
   };
 
   if (element.type === 'rect' || element.type === 'ellipse' || element.type === 'line') {
+    const stroke = element.strokeWidth || 3;
+
+    // Keep the `border` shorthand and its longhands apart. Setting
+    // `borderTop: undefined` alongside `border` made React clear the top edge,
+    // which is why rectangles and circles looked sliced off at the top.
+    const shapeStyle: React.CSSProperties =
+      element.type === 'line'
+        ? {
+            ...baseStyle,
+            height: 0,
+            borderTop: `${stroke}px solid ${element.color}`,
+            background: 'transparent',
+          }
+        : {
+            ...baseStyle,
+            border: `${stroke}px solid ${element.color}`,
+            borderRadius: element.type === 'ellipse' ? '50%' : 12,
+            background: `${element.color}12`,
+          };
+
     return (
-      <div
-        style={{
-          ...baseStyle,
-          border:
-            element.type === 'line'
-              ? 'none'
-              : `${element.strokeWidth || 3}px solid ${element.color}`,
-          borderTop:
-            element.type === 'line' ? `${element.strokeWidth || 3}px solid ${element.color}` : undefined,
-          height: element.type === 'line' ? 0 : element.height,
-          borderRadius: element.type === 'ellipse' ? '50%' : element.type === 'line' ? 0 : 12,
-          background: element.type === 'line' ? 'transparent' : `${element.color}12`,
-        }}
-        onPointerDown={handlePointerDown}
-      >
+      <div style={shapeStyle} onPointerDown={handlePointerDown}>
         {deleteButton}
+        {resizeHandle}
       </div>
     );
   }
@@ -269,6 +317,18 @@ const styles: Record<string, React.CSSProperties> = {
     maxWidth: '80%',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
+  },
+  resizeHandle: {
+    position: 'absolute',
+    right: -7,
+    bottom: -7,
+    width: 14,
+    height: 14,
+    borderRadius: 4,
+    background: 'var(--color-primary)',
+    border: '2px solid #ffffff',
+    boxShadow: '0 2px 6px rgba(22, 50, 74, 0.3)',
+    touchAction: 'none',
   },
   deleteBtn: {
     position: 'absolute',
