@@ -615,10 +615,19 @@ export const mqttSubscribe = (targetTopic: string, handler: TopicHandler): (() =
   };
 };
 
-export const mqttPublish = (targetTopic: string, payload: unknown): boolean => {
+/**
+ * `retain` asks the broker to keep this payload as the topic's last known
+ * value, so a client subscribing later receives it even if nobody is online.
+ */
+export const mqttPublish = (
+  targetTopic: string,
+  payload: unknown,
+  options: { retain?: boolean } = {}
+): boolean => {
   if (!mqttClient || !mqttClient.connected) return false;
   try {
-    mqttClient.publish(targetTopic, JSON.stringify(payload), { qos: 0 });
+    const body = payload === null ? '' : JSON.stringify(payload);
+    mqttClient.publish(targetTopic, body, { qos: 0, retain: Boolean(options.retain) });
     return true;
   } catch (e) {
     console.error('[MQTT] publish failed:', targetTopic, e);

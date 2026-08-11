@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { mqttClientId, mqttHostKey, mqttPublish, mqttSubscribe } from './useBoardStore';
+import { isMqttConnected, mqttClientId, mqttHostKey, mqttPublish, mqttSubscribe } from './useBoardStore';
 import { registerDriveExtra } from '../services/driveBridge';
 
 export type SandboxTool =
@@ -152,6 +152,16 @@ const persist = (sandboxes: Sandbox[], elements: SandboxElement[]) => {
 
 const roomTopic = (sandboxId: string) => `antigravity/padlet/v1/sandbox/${mqttHostKey}/${sandboxId}`;
 
+/**
+ * The canvas is also published here as a retained message, which the broker
+ * keeps as the topic's last known value. That is what lets someone opening a
+ * share link load the canvas even when nobody else has it open.
+ */
+const archiveTopic = (sandboxId: string) => `${roomTopic(sandboxId)}/archive`;
+
+/** Retained payloads have to fit in a single broker packet. */
+const MAX_ARCHIVE_BYTES = 700_000;
+
 /** Every 모둠 works on its own page, so all groups share one coordinate space. */
 export const GROUP_PAGE = { width: 1600, height: 1000 };
 
@@ -267,6 +277,8 @@ export const useSandboxStore = create<SandboxState>((set, get) => {
       const sandboxes = [...get().sandboxes, sandbox];
       set({ sandboxes });
       commit(sandboxes, get().elements);
+      // Make the share link answerable straight away, before any edits
+      archiveState(sandbox, get().elements);
       return id;
     },
 
@@ -274,6 +286,7 @@ export const useSandboxStore = create<SandboxState>((set, get) => {
       const sandboxes = get().sandboxes.filter((s) => s.id !== sandboxId);
       const elements = get().elements.filter((el) => el.sandboxId !== sandboxId);
       set({ sandboxes, elements });
+      forgetSandboxArchive(sandboxId);
       commit(sandboxes, elements);
     },
 
@@ -425,6 +438,28 @@ export const useSandboxStore = create<SandboxState>((set, get) => {
 // --- Realtime room sync -------------------------------------------------
 
 let publishTimer: any = null;
+let archiveTimer: any = null;
+
+const snapshotPayload = (sandbox: Sandbox, elements: SandboxElement[]) => ({
+  type: 'sandbox-state' as const,
+  senderId: mqttClientId,
+  savedAt: new Date().toISOString(),
+  sandbox,
+  elements: elements.filter((el) => el.sandboxId === sandbox.id),
+});
+
+/** Keeps the broker's retained copy current so late visitors get the canvas. */
+const archiveState = (sandbox: Sandbox, elements: SandboxElement[]) => {
+  const payload = snapshotPayload(sandbox, elements);
+  const size = JSON.stringify(payload).length;
+  if (size > MAX_ARCHIVE_BYTES) {
+    console.warn(
+      `[sandbox] canvas is ${size} bytes, too large to keep a shareable copy on the broker`
+    );
+    return;
+  }
+  mqttPublish(archiveTopic(sandbox.id), payload, { retain: true });
+};
 
 const broadcastState = (sandboxes: Sandbox[], elements: SandboxElement[]) => {
   const activeId = useSandboxStore.getState().activeSandboxId;
@@ -436,13 +471,16 @@ const broadcastState = (sandboxes: Sandbox[], elements: SandboxElement[]) => {
   // Coalesce rapid edits (drawing strokes) into one publish
   if (publishTimer) clearTimeout(publishTimer);
   publishTimer = setTimeout(() => {
-    mqttPublish(roomTopic(activeId), {
-      type: 'sandbox-state',
-      senderId: mqttClientId,
-      sandbox,
-      elements: elements.filter((el) => el.sandboxId === activeId),
-    });
+    mqttPublish(roomTopic(activeId), snapshotPayload(sandbox, elements));
   }, 120);
+
+  // The retained copy changes less often; it only needs to settle after edits
+  if (archiveTimer) clearTimeout(archiveTimer);
+  archiveTimer = setTimeout(() => {
+    const latest = useSandboxStore.getState();
+    const current = latest.sandboxes.find((s) => s.id === activeId);
+    if (current) archiveState(current, latest.elements);
+  }, 1500);
 };
 
 const mergeRemote = (sandbox: Sandbox, remoteElements: SandboxElement[]) => {
@@ -517,18 +555,29 @@ const requestSnapshotUntilSynced = (sandboxId: string) => {
   catchUpTimer = setInterval(ask, 1200);
 };
 
+let unsubscribeArchive: (() => void) | null = null;
+
 /** Subscribe to the active sandbox room; call again when the sandbox changes. */
 export const joinSandboxRoom = (sandboxId: string | null): void => {
   if (joinedSandboxId === sandboxId) return;
 
   unsubscribeRoom?.();
+  unsubscribeArchive?.();
   unsubscribeRoom = null;
+  unsubscribeArchive = null;
   if (catchUpTimer) {
     clearInterval(catchUpTimer);
     catchUpTimer = null;
   }
   joinedSandboxId = sandboxId;
   if (!sandboxId) return;
+
+  // The retained copy is delivered as soon as we subscribe, so a visitor with
+  // only the link gets the canvas without anyone else being online.
+  unsubscribeArchive = mqttSubscribe(archiveTopic(sandboxId), (payload) => {
+    if (!payload || !payload.sandbox) return;
+    mergeRemote(payload.sandbox as Sandbox, (payload.elements || []) as SandboxElement[]);
+  });
 
   unsubscribeRoom = mqttSubscribe(roomTopic(sandboxId), (payload) => {
     if (!payload || payload.senderId === mqttClientId) return;
@@ -539,15 +588,7 @@ export const joinSandboxRoom = (sandboxId: string | null): void => {
     }
 
     if (payload.type === 'sandbox-request') {
-      const state = useSandboxStore.getState();
-      const sandbox = state.sandboxes.find((s) => s.id === sandboxId);
-      if (!sandbox) return;
-      mqttPublish(roomTopic(sandboxId), {
-        type: 'sandbox-state',
-        senderId: mqttClientId,
-        sandbox,
-        elements: state.elements.filter((el) => el.sandboxId === sandboxId),
-      });
+      publishSandboxSnapshot(sandboxId);
     }
   });
 
@@ -558,12 +599,43 @@ export const publishSandboxSnapshot = (sandboxId: string): void => {
   const state = useSandboxStore.getState();
   const sandbox = state.sandboxes.find((s) => s.id === sandboxId);
   if (!sandbox) return;
-  mqttPublish(roomTopic(sandboxId), {
-    type: 'sandbox-state',
-    senderId: mqttClientId,
-    sandbox,
-    elements: state.elements.filter((el) => el.sandboxId === sandboxId),
-  });
+  mqttPublish(roomTopic(sandboxId), snapshotPayload(sandbox, state.elements));
+  archiveState(sandbox, state.elements);
+};
+
+/** Drops the retained copy so a deleted canvas stops answering its share link. */
+export const forgetSandboxArchive = (sandboxId: string): void => {
+  mqttPublish(archiveTopic(sandboxId), null, { retain: true });
+};
+
+/**
+ * Keeps trying until the shareable copy is actually stored. On a fresh page
+ * load the socket is usually still connecting, and a dropped publish would
+ * leave the share link unanswerable until the next edit.
+ */
+export const ensureSandboxArchived = (sandboxId: string): (() => void) => {
+  let attempts = 0;
+  let timer: any = null;
+  const stop = () => {
+    if (timer) clearInterval(timer);
+    timer = null;
+  };
+
+  const tick = () => {
+    attempts += 1;
+    const state = useSandboxStore.getState();
+    const sandbox = state.sandboxes.find((s) => s.id === sandboxId);
+    if (sandbox && isMqttConnected()) {
+      publishSandboxSnapshot(sandboxId);
+      stop();
+      return;
+    }
+    if (attempts > 20) stop();
+  };
+
+  tick();
+  timer = setInterval(tick, 1500);
+  return stop;
 };
 
 /** Viewport that frames one 모둠 page inside the given viewport. */

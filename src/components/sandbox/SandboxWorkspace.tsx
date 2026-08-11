@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { Loader2 } from 'lucide-react';
 import {
   useSandboxStore,
   joinSandboxRoom,
-  publishSandboxSnapshot,
+  ensureSandboxArchived,
   computeFitViewport,
   GROUP_PAGE,
 } from '../../store/useSandboxStore';
@@ -45,7 +46,19 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
 
   const [toast, setToast] = useState('');
   const [isExporting, setIsExporting] = useState(false);
+  const [isLoadingCanvas, setIsLoadingCanvas] = useState(!sandbox);
   const framedGroupId = useRef<string | null>(null);
+
+  // Give the network a fair chance before telling someone the link is broken
+  useEffect(() => {
+    if (sandbox) {
+      setIsLoadingCanvas(false);
+      return;
+    }
+    setIsLoadingCanvas(true);
+    const timer = setTimeout(() => setIsLoadingCanvas(false), 12000);
+    return () => clearTimeout(timer);
+  }, [sandbox, sandboxId]);
 
   const showToast = (message: string) => {
     setToast(message);
@@ -106,11 +119,10 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
     if (myName) updatePresenceIdentity({ name: myName, color: myColor, groupId: myGroupId });
   }, [myName, myColor, myGroupId]);
 
-  // Teachers seed the room so guests who arrive first still get the canvas
+  // Keep the shareable copy current so the link works even when nobody is here
   useEffect(() => {
     if (isGuestMode || !sandbox) return;
-    const timer = setTimeout(() => publishSandboxSnapshot(sandboxId), 700);
-    return () => clearTimeout(timer);
+    return ensureSandboxArchived(sandboxId);
   }, [isGuestMode, sandbox, sandboxId]);
 
   const countFor = useCallback(
@@ -193,15 +205,31 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
   const safeTitle = (sandbox?.title || 'canvas').replace(/[^\w\sㄱ-힣]/g, '').trim() || 'canvas';
 
   if (!sandbox) {
+    // The canvas arrives over the network, so waiting is normal — only call it
+    // missing once we have genuinely given up on it.
     return (
       <div style={styles.emptyState}>
-        <h2 style={{ marginBottom: 8 }}>캔버스를 찾을 수 없습니다</h2>
-        <p style={{ marginBottom: 20 }}>
-          링크가 만료되었거나, 아직 선생님이 캔버스를 열지 않았을 수 있습니다.
-        </p>
-        <button className="button-premium active" onClick={onExit} style={{ padding: '10px 20px' }}>
-          돌아가기
-        </button>
+        {isLoadingCanvas ? (
+          <>
+            <Loader2 size={30} className="spin" color="var(--color-primary)" />
+            <h2 style={{ margin: '14px 0 6px' }}>캔버스를 불러오는 중…</h2>
+            <p>공유 링크로 캔버스를 찾고 있습니다. 잠시만 기다려주세요.</p>
+          </>
+        ) : (
+          <>
+            <h2 style={{ marginBottom: 8 }}>캔버스를 찾을 수 없습니다</h2>
+            <p style={{ marginBottom: 20 }}>
+              링크가 잘못되었거나 캔버스가 삭제되었을 수 있습니다. 링크를 다시 확인해주세요.
+            </p>
+            <button
+              className="button-premium active"
+              onClick={() => window.location.reload()}
+              style={{ padding: '10px 20px' }}
+            >
+              다시 시도
+            </button>
+          </>
+        )}
       </div>
     );
   }
