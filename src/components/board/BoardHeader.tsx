@@ -615,6 +615,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   btnLabel: {
     display: 'inline',
+    whiteSpace: 'nowrap',
   },
   zoomControls: {
     display: 'flex',

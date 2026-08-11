@@ -59,16 +59,22 @@
   --card-mint-s: 65%;
   --card-mint-l: 42%;
 
-  /* Soft sticky-note pastels that sit well on bright wallpapers */
-  --card-indigo: #e7f3ff;
-  --card-emerald: #e6f7f0;
-  --card-peach: #fff0e8;
-  --card-sky: #e8f8fc;
-  --card-rose: #fdeef4;
-  --card-amber: #fff8e6;
-  --card-violet: #eef6f4;
-  --card-mint: #e9faf6;
+  /* Sticky-note pastels. Solid on purpose: card text contrast must not depend
+     on whichever wallpaper the board happens to use. */
+  --card-indigo: #dcecff;
+  --card-emerald: #d7f2e5;
+  --card-peach: #ffe6d5;
+  --card-sky: #d8f1fb;
+  --card-rose: #fddfeb;
+  --card-amber: #fff0c9;
+  --card-violet: #e4eefc;
+  --card-mint: #d6f6ee;
   --card-paper: #ffffff;
+
+  /* Text drawn on top of a card, independent of the page theme */
+  --card-text: #14304a;
+  --card-text-muted: #4f6b83;
+  --card-border: rgba(20, 48, 74, 0.14);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -96,15 +102,8 @@
   --orb-1: rgba(45, 212, 191, 0.28);
   --orb-2: rgba(56, 189, 248, 0.22);
 
-  --card-indigo: rgba(125, 211, 252, 0.16);
-  --card-emerald: rgba(110, 231, 183, 0.14);
-  --card-peach: rgba(253, 186, 116, 0.16);
-  --card-sky: rgba(125, 211, 252, 0.14);
-  --card-rose: rgba(251, 113, 133, 0.14);
-  --card-amber: rgba(251, 191, 36, 0.14);
-  --card-violet: rgba(94, 234, 212, 0.14);
-  --card-mint: rgba(94, 234, 212, 0.12);
-  --card-paper: rgba(30, 41, 59, 0.55);
+  /* Cards keep their light paper look on dark wallpapers too, so the text
+     stays legible instead of fading into the background. */
 }
 
 * {
@@ -117,7 +116,10 @@
 body {
   margin: 0;
   width: 100vw;
+  /* dvh keeps the bottom of the app reachable when mobile browser chrome
+     shrinks the viewport, which otherwise pushed the toolbar off screen */
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background: var(--bg-app-gradient);
   background-color: var(--bg-app);
@@ -229,6 +231,8 @@ body {
   align-items: center;
   gap: 6px;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -259,7 +263,12 @@ body {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
+/* Must restate the background: the `.dark-theme .button-premium` rule above has
+   the same specificity as `.button-premium.active` and would otherwise win,
+   leaving dark label text on a dark button. */
 .dark-theme .button-premium.active {
+  background: var(--color-primary);
+  border-color: var(--color-accent);
   color: #042f2e;
   box-shadow: 0 0 15px rgba(45, 212, 191, 0.35);
 }
@@ -342,6 +351,15 @@ p {
   gap: 12px;
   flex: 1;
   justify-content: flex-end;
+  /* Labels no longer shrink, so let the row scroll rather than clip controls */
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.board-header-controls-mobile::-webkit-scrollbar {
+  height: 0;
 }
 
 .board-header-controls-mobile .controls-row-2,
@@ -356,6 +374,57 @@ p {
 }
 .zoom-desktop-only {
   display: flex !important;
+}
+
+/* --- Collaborative canvas on small screens ------------------------------- */
+@media (max-width: 820px) {
+  /* Keep the tool palette on screen and reachable above the browser chrome */
+  .sandbox-toolbar {
+    left: 8px !important;
+    right: 8px !important;
+    transform: none !important;
+    max-width: none !important;
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    row-gap: 6px !important;
+    padding: 8px !important;
+    overflow-x: visible !important;
+  }
+
+  .sandbox-toolbar button {
+    width: 36px !important;
+    height: 36px !important;
+    padding: 0 !important;
+    border-radius: 9px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* The colour swatches are buttons too, but must stay round and small */
+  .sandbox-toolbar .swatch {
+    width: 22px !important;
+    height: 22px !important;
+    border-radius: 50% !important;
+  }
+
+  .sandbox-toolbar .toolbar-divider {
+    display: none !important;
+  }
+
+  /* Header height is load bearing for the canvas offset, so compress the
+     contents instead of letting it grow */
+  .sandbox-header {
+    padding: 0 10px !important;
+    gap: 8px !important;
+  }
+
+  .sandbox-status-pill {
+    display: none !important;
+  }
+
+  .sandbox-group-tabs {
+    padding: 6px 10px !important;
+  }
 }
 
 @media (max-width: 480px) {
@@ -693,7 +762,7 @@ p {
   div[style*="cardContent"] {
     font-size: 0.95rem !important;
     line-height: 1.6 !important;
-    color: var(--text-main) !important;
+    color: var(--card-text) !important;
   }
 
   .column-view-wrapper {

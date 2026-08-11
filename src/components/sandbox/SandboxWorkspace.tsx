@@ -8,12 +8,12 @@ import {
   computeFitViewport,
   GROUP_PAGE,
 } from '../../store/useSandboxStore';
+import { useAuthStore } from '../../store/useBoardStore';
 import { startPresence, stopPresence, updatePresenceIdentity } from '../../store/usePresenceStore';
 import { SandboxCanvas } from './SandboxCanvas';
 import { SandboxHeader } from './SandboxHeader';
 import { SandboxToolbar } from './SandboxToolbar';
 import { GroupTabs } from './GroupTabs';
-import { JoinSandboxModal } from './JoinSandboxModal';
 
 interface Props {
   sandboxId: string;
@@ -38,11 +38,12 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
     addGroup,
   } = useSandboxStore();
 
+  const teacherName = useAuthStore((state) => state.currentUser?.username);
+
   const sandbox = sandboxes.find((s) => s.id === sandboxId);
   const activeGroup = sandbox?.groups.find((g) => g.id === activeGroupId) ?? null;
 
   const [toast, setToast] = useState('');
-  const [hasJoined, setHasJoined] = useState(() => Boolean(myName));
   const [isExporting, setIsExporting] = useState(false);
   const framedGroupId = useRef<string | null>(null);
 
@@ -73,6 +74,15 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
     if (preferred) setActiveGroupId(preferred.id);
   }, [sandbox, activeGroupId, myGroupId, setActiveGroupId]);
 
+  // Anyone holding the link can write straight away: give them a provisional
+  // name so nothing gates the canvas, and let them rename from the header.
+  useEffect(() => {
+    if (!sandbox || myName) return;
+    const fallback = teacherName || `참여자-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+    const group = sandbox.groups.find((g) => g.id === myGroupId) ?? sandbox.groups[0];
+    setIdentity(fallback, group?.id ?? null, group?.color || myColor);
+  }, [sandbox, myName, myGroupId, myColor, teacherName, setIdentity]);
+
   // Frame each group's page the first time it is opened
   useEffect(() => {
     if (!activeGroupId || framedGroupId.current === activeGroupId) return;
@@ -80,21 +90,21 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
     fitToContent();
   }, [activeGroupId, fitToContent]);
 
-  // Broadcast presence once the participant has identified themselves.
+  // Broadcast presence once we have a name.
   // Identity changes are pushed separately so peers never see a leave/rejoin flicker.
   useEffect(() => {
-    if (!hasJoined || !myName) return;
+    if (!myName) return;
     startPresence(sandboxId, {
       name: useSandboxStore.getState().myName,
       color: useSandboxStore.getState().myColor,
       groupId: useSandboxStore.getState().myGroupId,
     });
     return () => stopPresence();
-  }, [sandboxId, hasJoined, myName]);
+  }, [sandboxId, myName]);
 
   useEffect(() => {
-    if (hasJoined && myName) updatePresenceIdentity({ name: myName, color: myColor, groupId: myGroupId });
-  }, [hasJoined, myName, myColor, myGroupId]);
+    if (myName) updatePresenceIdentity({ name: myName, color: myColor, groupId: myGroupId });
+  }, [myName, myColor, myGroupId]);
 
   // Teachers seed the room so guests who arrive first still get the canvas
   useEffect(() => {
@@ -197,7 +207,6 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
   }
 
   const canEdit = !isGuestMode || sandbox.allowGuestEdit;
-  const needsJoin = !hasJoined || !myName;
 
   return (
     <div style={styles.root}>
@@ -210,7 +219,12 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
         countFor={countFor}
         isGuestMode={isGuestMode}
         isExporting={isExporting}
-        onSelect={setActiveGroupId}
+        onSelect={(groupId) => {
+          // Each 모둠 has its own page, so the page you are on is the group you work in
+          setActiveGroupId(groupId);
+          const group = sandbox.groups.find((g) => g.id === groupId);
+          setIdentity(myName, groupId, group?.color || myColor);
+        }}
         onAddGroup={() => {
           const name = window.prompt('새 모둠 이름', `${sandbox.groups.length + 1}모둠`);
           if (name && name.trim()) addGroup(sandbox.id, name.trim());
@@ -223,23 +237,10 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
       />
 
       <div style={styles.canvasArea}>
-        <SandboxCanvas sandbox={sandbox} group={activeGroup} canEdit={canEdit && !needsJoin} />
+        <SandboxCanvas sandbox={sandbox} group={activeGroup} canEdit={canEdit} />
       </div>
 
-      <SandboxToolbar canEdit={canEdit && !needsJoin} onFitToContent={fitToContent} />
-
-      {needsJoin && (
-        <JoinSandboxModal
-          sandbox={sandbox}
-          initialName={myName}
-          onJoin={(name, groupId) => {
-            const group = sandbox.groups.find((g) => g.id === groupId);
-            setIdentity(name, groupId, group?.color || myColor);
-            if (groupId) setActiveGroupId(groupId);
-            setHasJoined(true);
-          }}
-        />
-      )}
+      <SandboxToolbar canEdit={canEdit} onFitToContent={fitToContent} />
 
       {toast && <div style={styles.toast}>{toast}</div>}
     </div>

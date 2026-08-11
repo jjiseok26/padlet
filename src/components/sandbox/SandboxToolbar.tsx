@@ -76,13 +76,14 @@ export const SandboxToolbar: React.FC<Props> = ({ canEdit, onFitToContent }) => 
             ))}
           </div>
 
-          <div style={styles.divider} />
+          <div className="toolbar-divider" style={styles.divider} />
 
           <div style={styles.group}>
             {COLORS.map((color) => (
               <button
                 key={color}
                 onClick={() => setDrawColor(color)}
+                className="swatch"
                 title={`색상 ${color}`}
                 style={{
                   ...styles.colorDot,
@@ -94,7 +95,7 @@ export const SandboxToolbar: React.FC<Props> = ({ canEdit, onFitToContent }) => 
             ))}
           </div>
 
-          <div style={styles.divider} />
+          <div className="toolbar-divider" style={styles.divider} />
 
           <div style={styles.group}>
             {WIDTHS.map((width) => (
@@ -120,7 +121,7 @@ export const SandboxToolbar: React.FC<Props> = ({ canEdit, onFitToContent }) => 
             ))}
           </div>
 
-          <div style={styles.divider} />
+          <div className="toolbar-divider" style={styles.divider} />
         </>
       )}
 

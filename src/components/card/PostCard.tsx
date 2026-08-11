@@ -223,7 +223,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
         backgroundColor: cardBg,
         border: isEditing 
           ? '1px solid var(--color-primary)' 
-          : '1px solid var(--border-card-base)',
+          : '1px solid var(--card-border)',
         boxShadow: isEditing 
           ? '0 12px 30px rgba(13, 148, 136, 0.18)' 
           : '0 10px 28px rgba(22, 50, 74, 0.12)',
@@ -235,7 +235,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
         backgroundColor: cardBg,
         border: isEditing 
           ? '1px solid var(--color-primary)' 
-          : '1px solid var(--border-card-base)',
+          : '1px solid var(--card-border)',
         boxShadow: isEditing 
           ? '0 12px 30px rgba(13, 148, 136, 0.18)' 
           : '0 8px 20px rgba(22, 50, 74, 0.08)',
@@ -398,7 +398,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
               style={styles.attachmentInput}
             />
             {attachUrl && attachUrl.startsWith('data:') && (
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--card-text-muted)' }}>
                 {attachUrl.startsWith('data:image/') ? (
                   <div style={{ marginTop: '4px' }}>
                     <p style={{ marginBottom: '4px' }}>업로드된 이미지 미리보기:</p>
@@ -429,7 +429,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
               style={{
                 ...styles.colorDot,
                 backgroundColor: preset.value,
-                border: cardBg === preset.value ? '2px solid #ffffff' : '1px solid rgba(255,255,255,0.2)'
+                border: cardBg === preset.value ? '2px solid var(--card-text)' : '1px solid var(--card-border)'
               }}
               title={preset.name}
             />
@@ -622,7 +622,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
                     <div style={{ fontWeight: 'bold', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                       첨부파일
                     </div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--card-text-muted)' }}>
                       {post.attachmentUrl.startsWith('data:') ? post.attachmentUrl.split(';')[0].replace('data:', '') : '다운로드 가능 파일'}
                     </div>
                   </div>
@@ -710,7 +710,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, layoutMode, onStartDra
                   onClick={() => setShowComments(!showComments)} 
                   style={{
                     ...styles.commentToggleBtn,
-                    color: showComments ? 'var(--color-primary)' : 'var(--text-muted)'
+                    color: showComments ? 'var(--color-primary)' : 'var(--card-text-muted)'
                   }}
                 >
                   <MessageSquare size={13} />
@@ -808,12 +808,12 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottom: '1px solid var(--border-card-base)',
+    borderBottom: '1px solid var(--card-border)',
   },
   cardTitle: {
     fontSize: '0.925rem',
     fontWeight: '600',
-    color: 'var(--text-main)',
+    color: 'var(--card-text)',
     marginRight: '8px',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
@@ -828,7 +828,7 @@ const styles: Record<string, React.CSSProperties> = {
   cardHeaderBtn: {
     background: 'transparent',
     border: 'none',
-    color: 'var(--text-muted)',
+    color: 'var(--card-text-muted)',
     cursor: 'pointer',
     padding: '3px',
     display: 'flex',
@@ -857,7 +857,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   cardContent: {
     fontSize: '0.875rem',
-    color: 'var(--text-main)',
+    color: 'var(--card-text)',
     wordBreak: 'break-word',
     userSelect: 'text',
     lineHeight: '1.45',
@@ -865,12 +865,12 @@ const styles: Record<string, React.CSSProperties> = {
   },
   timestamp: {
     fontSize: '0.7rem',
-    color: 'var(--text-muted)',
+    color: 'var(--card-text-muted)',
     alignSelf: 'flex-end',
   },
   cardFooter: {
     padding: '10px 16px',
-    borderTop: '1px solid var(--border-card-base)',
+    borderTop: '1px solid var(--card-border)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -883,13 +883,13 @@ const styles: Record<string, React.CSSProperties> = {
   },
   reactionBtn: {
     background: 'rgba(128,128,128,0.05)',
-    border: '1px solid var(--border-card-base)',
+    border: '1px solid var(--card-border)',
     borderRadius: '6px',
     padding: '3px 6px',
     display: 'flex',
     alignItems: 'center',
     gap: '4px',
-    color: 'var(--text-muted)',
+    color: 'var(--card-text-muted)',
     cursor: 'pointer',
     fontSize: '0.725rem',
     transition: 'all 0.15s ease',
@@ -904,7 +904,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '0.725rem',
   },
   commentsPanel: {
-    borderTop: '1px solid var(--border-card-base)',
+    borderTop: '1px solid var(--card-border)',
     background: 'rgba(128,128,128,0.08)',
     padding: '12px 16px',
   },
@@ -933,17 +933,17 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--color-primary)',
   },
   commentTime: {
-    color: 'var(--text-muted)',
+    color: 'var(--card-text-muted)',
   },
   commentTextContent: {
     fontSize: '0.775rem',
-    color: 'var(--text-main)',
+    color: 'var(--card-text)',
     userSelect: 'text',
   },
   noCommentsText: {
     fontSize: '0.75rem',
     textAlign: 'center',
-    color: 'var(--text-muted)',
+    color: 'var(--card-text-muted)',
     padding: '10px 0',
   },
   commentForm: {
@@ -951,7 +951,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: '6px',
     background: 'rgba(128,128,128,0.1)',
-    border: '1px solid var(--border-card-base)',
+    border: '1px solid var(--card-border)',
     borderRadius: '8px',
     padding: '2px 6px',
   },
@@ -960,7 +960,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'transparent',
     border: 'none',
     outline: 'none',
-    color: 'var(--text-main)',
+    color: 'var(--card-text)',
     fontSize: '0.75rem',
     padding: '4px 0',
   },
@@ -979,7 +979,7 @@ const styles: Record<string, React.CSSProperties> = {
   commentSubmitBtn: {
     background: 'transparent',
     border: 'none',
-    color: 'var(--text-muted)',
+    color: 'var(--card-text-muted)',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
@@ -1006,7 +1006,7 @@ const styles: Record<string, React.CSSProperties> = {
   closeEditorBtn: {
     background: 'transparent',
     border: 'none',
-    color: 'var(--text-muted)',
+    color: 'var(--card-text-muted)',
     cursor: 'pointer',
   },
   fieldGroup: {
@@ -1016,9 +1016,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   editInput: {
     background: 'rgba(128,128,128,0.08)',
-    border: '1px solid var(--border-card-base)',
+    border: '1px solid var(--card-border)',
     borderRadius: '8px',
-    color: 'var(--text-main)',
+    color: 'var(--card-text)',
     padding: '8px',
     fontSize: '0.8rem',
     outline: 'none',
@@ -1031,7 +1031,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   sectionLabel: {
     fontSize: '0.7rem',
-    color: 'var(--text-muted)',
+    color: 'var(--card-text-muted)',
     fontWeight: 'bold',
     textTransform: 'uppercase',
   },
@@ -1043,20 +1043,20 @@ const styles: Record<string, React.CSSProperties> = {
     flex: 1,
     fontSize: '0.7rem',
     padding: '4px',
-    border: '1px solid rgba(255,255,255,0.08)',
+    border: '1px solid var(--card-border)',
     borderRadius: '6px',
     cursor: 'pointer',
-    color: '#ffffff',
+    color: 'var(--card-text)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     gap: '3px',
   },
   attachmentInput: {
-    background: 'rgba(0,0,0,0.3)',
-    border: '1px solid rgba(255,255,255,0.08)',
+    background: 'rgba(255,255,255,0.85)',
+    border: '1px solid var(--card-border)',
     borderRadius: '6px',
-    color: '#ffffff',
+    color: 'var(--card-text)',
     padding: '6px',
     fontSize: '0.75rem',
     outline: 'none',
@@ -1218,7 +1218,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   passwordOverlayDesc: {
     fontSize: '0.725rem',
-    color: 'var(--text-muted)',
+    color: '#cbd5e1',
     marginBottom: '12px',
   },
   passwordForm: {
@@ -1250,7 +1250,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'rgba(255, 255, 255, 0.05)',
     border: '1px solid rgba(255, 255, 255, 0.1)',
     borderRadius: '6px',
-    color: 'var(--text-muted)',
+    color: '#e2e8f0',
     cursor: 'pointer',
     fontSize: '0.725rem',
     transition: 'all 0.15s ease',
@@ -1261,7 +1261,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'var(--color-primary)',
     border: 'none',
     borderRadius: '6px',
-    color: '#030712',
+    color: '#ffffff',
     cursor: 'pointer',
     fontSize: '0.725rem',
     fontWeight: 'bold',
@@ -1270,7 +1270,7 @@ const styles: Record<string, React.CSSProperties> = {
   commentDeleteBtn: {
     background: 'transparent',
     border: 'none',
-    color: 'var(--text-muted)',
+    color: 'var(--card-text-muted)',
     cursor: 'pointer',
     padding: '2px',
     display: 'flex',
@@ -1322,7 +1322,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'rgba(255, 255, 255, 0.05)',
     border: '1px solid rgba(255, 255, 255, 0.1)',
     borderRadius: '8px',
-    color: 'var(--text-muted)',
+    color: '#e2e8f0',
     cursor: 'pointer',
     fontSize: '0.8rem',
     fontWeight: 'bold',
@@ -1334,7 +1334,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'var(--color-primary)',
     border: 'none',
     borderRadius: '8px',
-    color: '#030712',
+    color: '#ffffff',
     cursor: 'pointer',
     fontSize: '0.8rem',
     fontWeight: 'bold',

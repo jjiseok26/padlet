@@ -229,7 +229,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: 'inherit',
     fontSize: '0.9rem',
     lineHeight: 1.5,
-    color: 'var(--text-main)',
+    color: 'var(--card-text)',
   },
   noteText: {
     width: '100%',
@@ -237,7 +237,7 @@ const styles: Record<string, React.CSSProperties> = {
     overflow: 'hidden',
     fontSize: '0.9rem',
     lineHeight: 1.5,
-    color: 'var(--text-main)',
+    color: 'var(--card-text)',
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
   },

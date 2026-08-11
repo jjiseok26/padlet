@@ -17,6 +17,7 @@ export const SandboxHeader: React.FC<Props> = ({ sandbox, isGuestMode, onExit, o
     elements,
     myGroupId,
     myName,
+    myColor,
     setIdentity,
     addGroup,
     removeGroup,
@@ -101,18 +102,33 @@ export const SandboxHeader: React.FC<Props> = ({ sandbox, isGuestMode, onExit, o
             </h1>
           )}
 
-          <span style={{ ...styles.statusPill, color: connected ? '#0f766e' : '#b45309' }}>
+          <span
+            className="sandbox-status-pill"
+            style={{ ...styles.statusPill, color: connected ? '#0f766e' : '#b45309' }}
+          >
             {connected ? <Wifi size={12} /> : <WifiOff size={12} />}
             {connected ? '실시간 연결됨' : '연결 대기중'}
           </span>
         </div>
 
         <div style={styles.right}>
-          {/* Live participants */}
+          {/* Live participants — click your own avatar to set a display name */}
           <div style={styles.presenceRow} title={`${peerList.length + 1}명 참여 중`}>
-            <span style={{ ...styles.avatar, background: myGroup?.color || 'var(--color-primary)' }}>
+            <button
+              onClick={() => {
+                const next = window.prompt('캔버스에 표시할 이름', myName);
+                if (next && next.trim()) setIdentity(next.trim(), myGroupId, myColor);
+              }}
+              style={{
+                ...styles.avatar,
+                background: myGroup?.color || 'var(--color-primary)',
+                cursor: 'pointer',
+                padding: 0,
+              }}
+              title={`${myName || '이름 없음'} · 이름 바꾸기`}
+            >
               {(myName || '나').slice(0, 1)}
-            </span>
+            </button>
             {peerList.slice(0, 4).map((peer) => (
               <span key={peer.clientId} style={{ ...styles.avatar, background: peer.color }} title={peer.name}>
                 {peer.name.slice(0, 1)}

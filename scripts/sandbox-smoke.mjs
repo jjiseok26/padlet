@@ -60,14 +60,15 @@ async function main() {
   await teacher.getByRole('button', { name: /새 캔버스/ }).click();
   await teacher.getByPlaceholder('예: 4학년 과학 브레인스토밍').fill('스모크 캔버스');
   await teacher.getByRole('button', { name: /캔버스 만들고 열기/ }).click();
-  await teacher.waitForTimeout(800);
+  await teacher.waitForTimeout(1000);
   log('canvas created');
 
-  // --- Join as teacher ---
-  await teacher.getByPlaceholder('예: 김하늘').fill('선생님');
-  await teacher.getByRole('button', { name: /캔버스 참여하기/ }).click();
-  await teacher.waitForTimeout(600);
-  log('teacher joined');
+  // No name gate: the canvas must be writable as soon as it opens
+  const gated = await teacher
+    .getByRole('button', { name: /캔버스 참여하기/ })
+    .isVisible()
+    .catch(() => false);
+  log(`join gate shown (should be false): ${gated}`);
 
   const state0 = await readSandboxState(teacher);
   const sandboxId = state0.sandboxes[0]?.id;
@@ -187,18 +188,14 @@ async function main() {
   await guest.goto(`${BASE}?sandbox=${sandboxId}`);
   await guest.waitForTimeout(6000);
 
-  const guestSeesCanvas = await guest.getByPlaceholder('예: 김하늘').isVisible().catch(() => false);
   const guestSeesMissing = await guest
     .getByText('캔버스를 찾을 수 없습니다')
     .isVisible()
     .catch(() => false);
+  const guestSeesCanvas = !guestSeesMissing && (await guest.getByTitle('메모지').isVisible());
   log(`guest received canvas: ${guestSeesCanvas} | "not found" shown: ${guestSeesMissing}`);
 
   if (guestSeesCanvas) {
-    await guest.getByPlaceholder('예: 김하늘').fill('학생1');
-    await guest.getByRole('button', { name: /캔버스 참여하기/ }).click();
-    await guest.waitForTimeout(1000);
-
     const gstate = await readSandboxState(guest);
     log('guest element count (synced from teacher):', gstate.elements.length);
 
@@ -232,6 +229,35 @@ async function main() {
     await guest.screenshot({ path: '/tmp/sandbox-guest.png' });
     await teacher.screenshot({ path: '/tmp/sandbox-teacher-after.png' });
   }
+
+  // --- Mobile: the tool palette must stay on screen ---
+  const mobileCtx = await browser.newContext({
+    viewport: { width: 390, height: 664 },
+    isMobile: true,
+    hasTouch: true,
+    deviceScaleFactor: 2,
+  });
+  const mobile = await mobileCtx.newPage();
+  mobile.on('pageerror', (e) => errors.push(`[mobile pageerror] ${e.message}`));
+  await mobile.goto(`${BASE}?sandbox=${sandboxId}`);
+  await mobile.waitForTimeout(6000);
+
+  const toolbarFits = await mobile.evaluate(() => {
+    const bar = document.querySelector('.sandbox-toolbar');
+    if (!bar) return { found: false };
+    const r = bar.getBoundingClientRect();
+    return {
+      found: true,
+      withinViewport: r.bottom <= window.innerHeight + 1 && r.top >= 0 && r.right <= window.innerWidth + 1,
+      rect: { top: Math.round(r.top), bottom: Math.round(r.bottom), right: Math.round(r.right) },
+      viewport: { w: window.innerWidth, h: window.innerHeight },
+    };
+  });
+  log('mobile toolbar:', JSON.stringify(toolbarFits));
+
+  const penVisible = await mobile.getByTitle('펜').isVisible().catch(() => false);
+  log(`mobile pen tool reachable: ${penVisible}`);
+  await mobile.screenshot({ path: '/tmp/sandbox-mobile.png' });
 
   console.log('\nconsole errors:', errors.length ? errors : 'none');
   await browser.close();

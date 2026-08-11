@@ -104,7 +104,7 @@ export const LinkPreview: React.FC<LinkPreviewProps> = ({ url }) => {
       <div style={styles.previewContent}>
         <div style={styles.domainWrapper}>
           <span style={styles.domainText}>{og.domain}</span>
-          <ExternalLink size={10} style={{ color: 'var(--text-muted)' }} />
+          <ExternalLink size={10} style={{ color: 'var(--card-text-muted)' }} />
         </div>
         <h4 style={styles.previewTitle}>{og.title}</h4>
         <p style={styles.previewDesc}>{og.description}</p>
@@ -160,7 +160,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   domainText: {
     fontSize: '0.65rem',
-    color: 'var(--text-muted)',
+    color: 'var(--card-text-muted)',
     textTransform: 'uppercase',
     fontWeight: 'bold',
     letterSpacing: '0.05em',
@@ -175,7 +175,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   previewDesc: {
     fontSize: '0.725rem',
-    color: 'var(--text-muted)',
+    color: 'var(--card-text-muted)',
     display: '-webkit-box',
     WebkitLineClamp: 2,
     WebkitBoxOrient: 'vertical',
