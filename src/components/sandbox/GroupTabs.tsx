@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, FileDown, Loader2, X, GripVertical } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Plus, FileDown, Loader2, X, GripVertical, Pencil } from 'lucide-react';
 import type { Sandbox } from '../../store/useSandboxStore';
 import { nestedOverlayOn, readableTextOn } from '../../utils/colorContrast';
 
@@ -12,6 +12,7 @@ interface Props {
   onSelect: (groupId: string) => void;
   onAddGroup: () => void;
   onRemoveGroup: (groupId: string) => void;
+  onRenameGroup: (groupId: string, name: string) => void;
   onReorder: (fromIndex: number, toIndex: number) => void;
   onExportCurrent: () => void;
   onExportAll: () => void;
@@ -27,17 +28,39 @@ export const GroupTabs: React.FC<Props> = ({
   onSelect,
   onAddGroup,
   onRemoveGroup,
+  onRenameGroup,
   onReorder,
   onExportCurrent,
   onExportAll,
 }) => {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
-  const canReorder = !isGuestMode && sandbox.groups.length > 1;
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draftName, setDraftName] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const canReorder = !isGuestMode && sandbox.groups.length > 1 && editingId === null;
+
+  useEffect(() => {
+    if (editingId) inputRef.current?.select();
+  }, [editingId]);
 
   const endDrag = () => {
     setDragIndex(null);
     setDropIndex(null);
+  };
+
+  const startRename = (groupId: string, currentName: string) => {
+    setEditingId(groupId);
+    setDraftName(currentName);
+  };
+
+  const commitRename = () => {
+    if (!editingId) return;
+    const next = draftName.trim();
+    const current = sandbox.groups.find((g) => g.id === editingId);
+    if (next && current && next !== current.name) onRenameGroup(editingId, next);
+    setEditingId(null);
   };
 
   return (
@@ -84,52 +107,81 @@ export const GroupTabs: React.FC<Props> = ({
               }}
               onDragEnd={endDrag}
             >
-              <button
-                onClick={() => onSelect(group.id)}
-                style={{
-                  ...styles.tab,
-                  background: active ? group.color : 'transparent',
-                  color: active ? label : 'var(--text-main)',
-                  borderColor: active ? group.color : 'var(--glass-border)',
-                  fontWeight: active ? 700 : 500,
-                  cursor: canReorder ? 'grab' : 'pointer',
-                }}
-                title={
-                  canReorder
-                    ? `${group.name} 캔버스 열기 · 드래그해서 순서 변경`
-                    : `${group.name} 캔버스 열기`
-                }
-              >
-                {canReorder && (
-                  <GripVertical
-                    size={13}
-                    style={{ flexShrink: 0, opacity: 0.55, color: active ? label : 'var(--text-muted)' }}
-                  />
-                )}
-                <span style={{ ...styles.dot, background: active ? label : group.color }} />
-                <span className="sandbox-rail-name" style={styles.tabName}>
-                  {group.name}
-                </span>
-                <span
-                  style={{
-                    ...styles.count,
-                    background: active ? nestedOverlayOn(group.color) : 'rgba(15,55,80,0.07)',
-                    color: active ? label : 'var(--text-muted)',
+              {editingId === group.id ? (
+                <input
+                  ref={inputRef}
+                  value={draftName}
+                  onChange={(e) => setDraftName(e.target.value)}
+                  onBlur={commitRename}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') commitRename();
+                    if (e.key === 'Escape') setEditingId(null);
                   }}
-                >
-                  {countFor(group.id)}
-                </span>
-              </button>
-
-              {!isGuestMode && sandbox.groups.length > 1 && (
+                  maxLength={20}
+                  style={{ ...styles.tab, ...styles.nameInput }}
+                  aria-label="모둠 이름"
+                />
+              ) : (
                 <button
-                  onClick={() => onRemoveGroup(group.id)}
-                  className="sandbox-rail-remove"
-                  style={styles.removeBtn}
-                  title={`${group.name} 삭제`}
+                  onClick={() => onSelect(group.id)}
+                  onDoubleClick={() => !isGuestMode && startRename(group.id, group.name)}
+                  style={{
+                    ...styles.tab,
+                    background: active ? group.color : 'transparent',
+                    color: active ? label : 'var(--text-main)',
+                    borderColor: active ? group.color : 'var(--glass-border)',
+                    fontWeight: active ? 700 : 500,
+                    cursor: canReorder ? 'grab' : 'pointer',
+                  }}
+                  title={
+                    isGuestMode
+                      ? `${group.name} 캔버스 열기`
+                      : `${group.name} 캔버스 열기 · 두 번 클릭하면 이름 변경${
+                          canReorder ? ' · 드래그해서 순서 변경' : ''
+                        }`
+                  }
                 >
-                  <X size={13} />
+                  {canReorder && (
+                    <GripVertical
+                      size={13}
+                      style={{ flexShrink: 0, opacity: 0.55, color: active ? label : 'var(--text-muted)' }}
+                    />
+                  )}
+                  <span style={{ ...styles.dot, background: active ? label : group.color }} />
+                  <span className="sandbox-rail-name" style={styles.tabName}>
+                    {group.name}
+                  </span>
+                  <span
+                    style={{
+                      ...styles.count,
+                      background: active ? nestedOverlayOn(group.color) : 'rgba(15,55,80,0.07)',
+                      color: active ? label : 'var(--text-muted)',
+                    }}
+                  >
+                    {countFor(group.id)}
+                  </span>
                 </button>
+              )}
+
+              {!isGuestMode && editingId !== group.id && (
+                <div className="sandbox-rail-controls" style={styles.controls}>
+                  <button
+                    onClick={() => startRename(group.id, group.name)}
+                    style={styles.controlBtn}
+                    title={`${group.name} 이름 변경`}
+                  >
+                    <Pencil size={12} />
+                  </button>
+                  {sandbox.groups.length > 1 && (
+                    <button
+                      onClick={() => onRemoveGroup(group.id)}
+                      style={{ ...styles.controlBtn, color: '#dc2626' }}
+                      title={`${group.name} 삭제`}
+                    >
+                      <X size={13} />
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           );
@@ -177,7 +229,7 @@ const styles: Record<string, React.CSSProperties> = {
     top: 68,
     left: 0,
     bottom: 0,
-    width: 186,
+    width: 208,
     zIndex: 65,
     display: 'flex',
     flexDirection: 'column',
@@ -246,22 +298,33 @@ const styles: Record<string, React.CSSProperties> = {
     textAlign: 'center',
     flexShrink: 0,
   },
-  removeBtn: {
+  controls: {
     position: 'absolute',
     right: -6,
-    top: -6,
+    top: -8,
+    display: 'none',
+    gap: 3,
+  },
+  controlBtn: {
     width: 20,
     height: 20,
     borderRadius: '50%',
     border: '1px solid var(--glass-border)',
     background: 'var(--bg-card-solid)',
-    color: '#dc2626',
-    display: 'none',
+    color: 'var(--text-muted)',
+    display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
     padding: 0,
     boxShadow: '0 3px 8px rgba(22, 50, 74, 0.18)',
+  },
+  nameInput: {
+    background: 'var(--bg-card-solid)',
+    borderColor: 'var(--color-primary)',
+    color: 'var(--text-main)',
+    outline: 'none',
+    fontWeight: 600,
   },
   addBtn: {
     display: 'flex',

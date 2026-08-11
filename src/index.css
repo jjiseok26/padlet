@@ -380,15 +380,15 @@ p {
 
 /* --- Collaborative canvas: 모둠 rail ------------------------------------- */
 /* Delete only appears on the row you are pointing at, so the rail stays calm */
-.sandbox-rail-item:hover .sandbox-rail-remove,
-.sandbox-rail-remove:focus-visible {
+.sandbox-rail-item:hover .sandbox-rail-controls,
+.sandbox-rail-controls:focus-within {
   display: flex !important;
 }
 
 .sandbox-canvas-area {
   position: absolute;
   top: 68px;
-  left: 186px;
+  left: 208px;
   right: 0;
   bottom: 0;
 }
@@ -469,7 +469,8 @@ p {
     flex-shrink: 0 !important;
   }
 
-  .sandbox-rail-remove {
+  /* No hover on touch, so the row controls stay visible */
+  .sandbox-rail-controls {
     display: flex !important;
   }
 

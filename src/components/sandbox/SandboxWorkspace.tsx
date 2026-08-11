@@ -37,6 +37,7 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
     addGroup,
     removeGroup,
     reorderGroups,
+    updateGroup,
   } = useSandboxStore();
 
   const teacherName = useAuthStore((state) => state.currentUser?.username);
@@ -274,6 +275,7 @@ export const SandboxWorkspace: React.FC<Props> = ({ sandboxId, isGuestMode, onEx
           }
           removeGroup(sandbox.id, groupId);
         }}
+        onRenameGroup={(groupId, name) => updateGroup(sandbox.id, groupId, { name })}
         onReorder={(from, to) => reorderGroups(sandbox.id, from, to)}
         onExportCurrent={() =>
           activeGroupId &&
