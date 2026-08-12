@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useBoardStore, useAuthStore } from './store/useBoardStore';
 import { useSandboxStore } from './store/useSandboxStore';
 import { Login } from './components/admin/Login';
@@ -48,7 +48,9 @@ const App: React.FC = () => {
   const shareDataEncoded = params.get('share');
   const sharedBoardId = params.get('board');
   const sharedSandboxId = params.get('sandbox');
-  const [guestSandboxId, setGuestSandboxId] = useState<string | null>(sharedSandboxId);
+  // Held in state because the query string is cleared right after we read it
+  const [linkedSandboxId, setLinkedSandboxId] = useState<string | null>(sharedSandboxId);
+  const openedLinkRef = useRef(false);
 
   let sharedBoardData: any = null;
   if (shareDataEncoded) {
@@ -115,6 +117,15 @@ const App: React.FC = () => {
   // Default app chrome is bright; switch to dark tokens only for dark wallpapers
   const useDarkTheme = !!activeBoard && !isLightColor(activeBoard.wallpaper) && !String(activeBoard.wallpaper).includes('(밝음)');
 
+  // A share link must open the canvas for signed-in people too, otherwise they
+  // land on the dashboard because the guest route only covers signed-out visitors.
+  useEffect(() => {
+    if (!linkedSandboxId || !isAuthenticated || openedLinkRef.current) return;
+    openedLinkRef.current = true;
+    setActiveSandboxId(linkedSandboxId);
+    setLinkedSandboxId(null);
+  }, [linkedSandboxId, isAuthenticated, setActiveSandboxId]);
+
   const isViewingBoardAsGuest = !isAuthenticated && activeBoardId !== 'dashboard' && boards.some(b => b.id === activeBoardId);
   const isGuestView = isGuestShareMode || isViewingBoardAsGuest;
 
@@ -129,12 +140,12 @@ const App: React.FC = () => {
         backgroundColor: useDarkTheme ? '#030712' : '#f0f7fb',
       }}
     >
-      {guestSandboxId && !isAuthenticated ? (
+      {linkedSandboxId && !isAuthenticated ? (
         /* Students join a collaborative canvas straight from the share link */
         <SandboxWorkspace
-          sandboxId={guestSandboxId}
+          sandboxId={linkedSandboxId}
           isGuestMode={true}
-          onExit={() => setGuestSandboxId(null)}
+          onExit={() => setLinkedSandboxId(null)}
         />
       ) : isAuthenticated && activeSandboxId ? (
         /* Teacher-owned collaborative canvas */
