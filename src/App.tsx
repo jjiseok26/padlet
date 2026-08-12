@@ -99,12 +99,16 @@ const App: React.FC = () => {
         importBoardData(sharedBoardData.board, sharedBoardData.posts);
       }
     }
-    // Clean up the URL query parameters to avoid stale imports on browser reload
-    if (shareDataEncoded || sharedBoardId || sharedSandboxId) {
-      const newUrl = window.location.origin + window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
+    // Board links carry a full copy of the board, so drop them once imported to
+    // avoid re-importing stale data on reload. The sandbox id is left in place —
+    // it is what makes refreshing and copying the address bar work.
+    if (shareDataEncoded || sharedBoardId) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('share');
+      url.searchParams.delete('board');
+      window.history.replaceState({}, document.title, `${url.pathname}${url.search}`);
     }
-  }, [shareDataEncoded, sharedBoardId, sharedSandboxId, boards, importBoardData]);
+  }, [shareDataEncoded, sharedBoardId, boards, importBoardData]);
 
   // 4. Asynchronously align store activeBoardId with target shared link id
   useEffect(() => {
@@ -125,6 +129,19 @@ const App: React.FC = () => {
     setActiveSandboxId(linkedSandboxId);
     setLinkedSandboxId(null);
   }, [linkedSandboxId, isAuthenticated, setActiveSandboxId]);
+
+  // Keep the address bar on whichever canvas is open, so a refresh reopens it
+  // and the URL stays copyable straight from the browser.
+  const openSandboxId = isAuthenticated ? activeSandboxId : linkedSandboxId;
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const inUrl = url.searchParams.get('sandbox');
+    if (openSandboxId === inUrl) return;
+
+    if (openSandboxId) url.searchParams.set('sandbox', openSandboxId);
+    else url.searchParams.delete('sandbox');
+    window.history.replaceState({}, document.title, `${url.pathname}${url.search}`);
+  }, [openSandboxId]);
 
   const isViewingBoardAsGuest = !isAuthenticated && activeBoardId !== 'dashboard' && boards.some(b => b.id === activeBoardId);
   const isGuestView = isGuestShareMode || isViewingBoardAsGuest;

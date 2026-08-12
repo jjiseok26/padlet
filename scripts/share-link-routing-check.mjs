@@ -58,11 +58,26 @@ log(`signed-in tab opens the canvas: ${signedIn.canvas}`, JSON.stringify(signedI
 const ownerControls = await sameBrowserTab.locator('.sandbox-rail-controls').count();
 log(`opened with owner controls: ${ownerControls > 0}`);
 
+// The address bar must keep the sandbox id, so refresh and copy keep working
+log(`link kept in the address bar: ${sameBrowserTab.url().includes(`sandbox=${sandboxId}`)}`, sameBrowserTab.url());
+await sameBrowserTab.reload();
+await sameBrowserTab.waitForTimeout(4000);
+const afterReload = await landedOnCanvas(sameBrowserTab);
+log(`refresh reopens the canvas: ${afterReload.canvas}`);
+
 // Leaving the canvas must go to the dashboard, not bounce back into it
 await sameBrowserTab.getByTitle('대시보드로').click();
 await sameBrowserTab.waitForTimeout(1200);
 const afterExit = await landedOnCanvas(sameBrowserTab);
 log(`exit lands on the dashboard and stays: ${afterExit.dashboard && !afterExit.canvas}`);
+log(`link removed after leaving: ${!sameBrowserTab.url().includes('sandbox=')}`, sameBrowserTab.url());
+
+// Opening a canvas from the dashboard should put it in the address bar too
+await sameBrowserTab.getByRole('button', { name: /모둠 협업 캔버스/ }).click();
+await sameBrowserTab.waitForTimeout(500);
+await sameBrowserTab.locator('.glass-card button.button-premium.active').first().click();
+await sameBrowserTab.waitForTimeout(1500);
+log(`opening from the dashboard sets the link: ${sameBrowserTab.url().includes('sandbox=')}`, sameBrowserTab.url());
 
 // 2) A signed-out visitor in a clean browser
 const guestCtx = await browser.newContext({ viewport: { width: 1280, height: 860 } });
