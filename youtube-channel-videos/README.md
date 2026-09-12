@@ -1,77 +1,62 @@
-# Channel Reel — YouTube channel video list
+# Channel Reel — HTML + JavaScript only
 
-A small JavaScript web app: enter a YouTube **channel ID**, and the app fetches that channel’s uploads via the **YouTube Data API v3** (`channels` → uploads playlist → `playlistItems`).
+npm, Node, Express **없이** 동작하는 작은 웹 페이지입니다.  
+브라우저에서 YouTube Data API v3를 직접 호출해 채널 업로드 영상 목록을 보여줍니다.
 
-## Features
+## 필요한 것
 
-- Input: YouTube channel ID (`UC…`)
-- Output: video title, thumbnail, watch link, and publish date
-- Clear messages for missing/invalid API key, bad channel ID, empty results, and API errors
-- Responsive layout for mobile and desktop
-- API key stays on the server (`YOUTUBE_API_KEY`) — never hardcoded in the client
+- 최신 브라우저 (Chrome, Edge, Firefox, Safari 등)
+- Google Cloud의 **YouTube Data API v3** 키
 
-## Requirements
+## API 키 발급
 
-- Node.js 18+
-- A YouTube Data API v3 key from Google Cloud
+1. [Google Cloud Console](https://console.cloud.google.com/)에서 프로젝트 생성/선택
+2. **APIs & Services → Library**에서 **YouTube Data API v3** 사용 설정
+3. **Credentials → Create credentials → API key**
+4. (권장) API 키를 YouTube Data API v3로 제한
+5. 키는 **앱 입력란에만** 넣고, 코드·README·Git에 커밋하지 마세요
 
-## Get a YouTube API key
+### 채널 ID 찾는 법
 
-1. Open [Google Cloud Console](https://console.cloud.google.com/).
-2. Create a project (or select an existing one).
-3. Go to **APIs & Services → Library**, search for **YouTube Data API v3**, and enable it.
-4. Go to **APIs & Services → Credentials → Create credentials → API key**.
-5. (Recommended) Restrict the key to **YouTube Data API v3**.
-6. Copy the key into your local `.env` file (next section). Do not commit it.
+- URL 예: `https://www.youtube.com/channel/UCxxxxxxxxxxxxxxxxxxxxxx` → `UC…` 부분이 ID
+- `@핸들`은 이 앱의 채널 ID가 아닙니다
 
-### Finding a channel ID
+## 실행 (npm 불필요)
 
-- Open a channel on YouTube → **About** → share / channel details, or
-- Use a URL like `https://www.youtube.com/channel/UCxxxxxxxxxxxxxxxxxxxxxx` — the `UC…` part is the ID.
-- A `@handle` is **not** a channel ID for this app.
+### 방법 A — 파일 열기
 
-## Run the app
+`youtube-channel-videos/index.html`을 브라우저로 엽니다.
+
+> 일부 브라우저는 `file://`에서 API 호출을 막을 수 있습니다. 안 되면 방법 B를 쓰세요.
+
+### 방법 B — 간단한 로컬 서버 (Python만, npm 아님)
 
 ```bash
 cd youtube-channel-videos
-cp .env.example .env
-# Edit .env and set YOUTUBE_API_KEY=your-real-key
-
-npm install
-npm start
+python3 -m http.server 3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+브라우저에서 [http://localhost:3000](http://localhost:3000) 을 엽니다.
 
-Optional: `npm run dev` starts the server with Node’s `--watch` reload.
+## 사용
 
-### Environment variables
+1. **YouTube API 키** 입력
+2. **채널 ID** (`UC…`) 입력
+3. **영상 불러오기** 클릭  
+→ 제목, 썸네일, 링크, 게시일이 표시됩니다.
 
-| Variable | Required | Description |
-|---|---|---|
-| `YOUTUBE_API_KEY` | Yes | YouTube Data API v3 key |
-| `PORT` | No | Server port (default `3000`) |
-
-## How it works
-
-1. Browser submits a channel ID to `GET /api/channel/:channelId/videos`.
-2. Server calls `channels.list` with `part=snippet,contentDetails` to read `relatedPlaylists.uploads`.
-3. Server calls `playlistItems.list` on that uploads playlist and returns titles, thumbnails, links, and dates.
-4. UI renders the list and supports next/previous page tokens when available.
-
-## Project layout
+## 파일 구성
 
 ```
 youtube-channel-videos/
-├── public/           # HTML, CSS, client JS
-├── server/index.js   # Express app + YouTube API proxy
-├── .env.example
-├── package.json
+├── index.html   # 페이지
+├── app.js       # API 호출 + UI
+├── styles.css   # 스타일
 └── README.md
 ```
 
-## Notes
+## 참고
 
-- Without `YOUTUBE_API_KEY`, the UI shows a clear warning and API routes return `503`.
-- Private/deleted playlist entries are filtered out of the list.
-- Quota: each load uses a small number of YouTube API units; Google’s free daily quota can run out.
+- API 키는 브라우저에 노출됩니다. 개인/학습용으로 키를 제한해 쓰세요.
+- 잘못된 키, 없는 채널, 빈 목록, 할당량 초과 시 화면에 메시지를 표시합니다.
+- 비공개/삭제된 항목은 목록에서 제외합니다.

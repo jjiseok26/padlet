@@ -96,7 +96,11 @@ body {
 .field-label {
   display: block;
   font-weight: 600;
-  margin-bottom: 0.45rem;
+  margin: 0.85rem 0 0.45rem;
+}
+
+.field-label:first-child {
+  margin-top: 0;
 }
 
 .field-row {
@@ -105,8 +109,9 @@ body {
   flex-wrap: wrap;
 }
 
+#api-key,
 #channel-id {
-  flex: 1 1 16rem;
+  width: 100%;
   min-width: 0;
   border: 1.5px solid var(--line);
   background: rgba(255, 255, 255, 0.72);
@@ -120,6 +125,12 @@ body {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+#channel-id {
+  flex: 1 1 16rem;
+  width: auto;
+}
+
+#api-key:focus,
 #channel-id:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 4px rgba(214, 69, 47, 0.15);
