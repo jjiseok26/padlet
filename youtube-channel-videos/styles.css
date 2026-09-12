@@ -85,6 +85,41 @@ body {
   font-size: 1.05rem;
 }
 
+.download-line {
+  margin: 1.1rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+}
+
+.download-link {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+  text-decoration: none;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.download-link:hover {
+  background: var(--accent-deep);
+  transform: translateY(-1px);
+}
+
+.download-note {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.site-footer a {
+  color: var(--accent-deep);
+  font-weight: 600;
+}
+
 .shell {
   padding-bottom: 3rem;
 }

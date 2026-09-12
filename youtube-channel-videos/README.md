@@ -3,6 +3,11 @@
 서버, npm, Node, 파이썬 **없이** 동작합니다.  
 `index.html`을 브라우저로 열면 끝입니다.
 
+## 다운로드
+
+- 저장소 파일: [`channel-reel.zip`](./channel-reel.zip)
+- 받는 방법: ZIP을 받은 뒤 압축을 풀고 **`index.html`을 더블클릭**하세요.
+
 ## 필요한 것
 
 - 최신 브라우저 (Chrome / Edge 권장)
@@ -11,10 +16,10 @@
 
 ## 실행 방법
 
-1. 폴더 `youtube-channel-videos`에서 **`index.html`을 더블클릭**하거나
-2. 브라우저에서 **파일 열기**로 `index.html`을 선택합니다.
+1. ZIP을 풀거나 폴더 `youtube-channel-videos`로 이동합니다
+2. **`index.html`을 더블클릭**하거나 브라우저에서 **파일 열기**로 선택합니다
 
-그게 전부입니다. 로컬 서버를 띄울 필요 없습니다.
+로컬 서버는 필요 없습니다.
 
 > Firefox 등 일부 환경은 `file://`에서 외부 API 호출을 막을 수 있습니다. 그때는 Chrome 또는 Edge로 열어 주세요.
 
@@ -42,9 +47,10 @@
 
 ```
 youtube-channel-videos/
-├── index.html   # 페이지 (이것만 열면 됨)
-├── app.js       # API 호출 + UI
-├── styles.css   # 스타일
+├── channel-reel.zip  # 다운로드용 묶음
+├── index.html        # 페이지 (이것만 열면 됨)
+├── app.js            # API 호출 + UI
+├── styles.css        # 스타일
 └── README.md
 ```
 
