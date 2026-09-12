@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Channel Reel — YouTube video list</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="atmosphere" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <p class="brand">Channel Reel</p>
+      <p class="tagline">Paste a channel ID. Browse its uploads.</p>
+    </header>
+
+    <main class="shell">
+      <form id="search-form" class="search-form" autocomplete="off">
+        <label class="field-label" for="channel-id">YouTube channel ID</label>
+        <div class="field-row">
+          <input
+            id="channel-id"
+            name="channelId"
+            type="text"
+            inputmode="text"
+            spellcheck="false"
+            placeholder="e.g. UC_x5XG1OV2P6uZZ5FSM9Ttw"
+            required
+          />
+          <button type="submit" id="submit-btn">Load videos</button>
+        </div>
+        <p class="hint">
+          Use the channel’s <code>UC…</code> ID (from the channel URL or About page), not a
+          @handle.
+        </p>
+      </form>
+
+      <section id="status" class="status" hidden role="status" aria-live="polite"></section>
+
+      <section id="channel-meta" class="channel-meta" hidden></section>
+
+      <section id="results" class="results" hidden>
+        <div class="results-head">
+          <h2 id="results-title">Videos</h2>
+          <p id="results-count" class="results-count"></p>
+        </div>
+        <ul id="video-list" class="video-list"></ul>
+        <div id="pager" class="pager" hidden>
+          <button type="button" id="prev-page" class="ghost-btn">Previous</button>
+          <button type="button" id="next-page" class="ghost-btn">Next</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        Powered by YouTube Data API v3. Set <code>YOUTUBE_API_KEY</code> in
+        <code>.env</code> — see README.
+      </p>
+    </footer>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
