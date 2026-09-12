@@ -46,9 +46,9 @@
           <button type="submit" id="submit-btn">영상 불러오기</button>
         </div>
         <p class="hint">
-          npm/서버 없이 브라우저에서 YouTube Data API v3를 직접 호출합니다.
-          채널은 <code>UC…</code> ID를 쓰세요 (@핸들 아님). API 키는 코드에 넣지 말고
-          여기 입력란에만 사용하세요.
+          서버·npm·파이썬 없이 <code>index.html</code>만 열면 됩니다. 브라우저가 YouTube
+          Data API v3를 직접 호출합니다. 채널은 <code>UC…</code> ID를 쓰세요 (@핸들 아님).
+          API 키는 코드에 넣지 말고 이 입력란에만 사용하세요.
         </p>
       </form>
 
@@ -71,10 +71,11 @@
 
     <footer class="site-footer">
       <p>
-        HTML + JavaScript only · YouTube Data API v3 · README의 API 키 발급 방법 참고
+        HTML + JavaScript only (서버 없음) · YouTube Data API v3 · README 참고
       </p>
     </footer>
 
-    <script src="./app.js" type="module"></script>
+    <!-- type=module 없이 로드: file:// 로 열어도 동작 -->
+    <script src="./app.js" defer></script>
   </body>
 </html>

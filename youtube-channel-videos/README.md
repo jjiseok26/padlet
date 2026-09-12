@@ -1,12 +1,22 @@
 # Channel Reel — HTML + JavaScript only
 
-npm, Node, Express **없이** 동작하는 작은 웹 페이지입니다.  
-브라우저에서 YouTube Data API v3를 직접 호출해 채널 업로드 영상 목록을 보여줍니다.
+서버, npm, Node, 파이썬 **없이** 동작합니다.  
+`index.html`을 브라우저로 열면 끝입니다.
 
 ## 필요한 것
 
-- 최신 브라우저 (Chrome, Edge, Firefox, Safari 등)
+- 최신 브라우저 (Chrome / Edge 권장)
 - Google Cloud의 **YouTube Data API v3** 키
+- 인터넷 연결 (YouTube API 호출용)
+
+## 실행 방법
+
+1. 폴더 `youtube-channel-videos`에서 **`index.html`을 더블클릭**하거나
+2. 브라우저에서 **파일 열기**로 `index.html`을 선택합니다.
+
+그게 전부입니다. 로컬 서버를 띄울 필요 없습니다.
+
+> Firefox 등 일부 환경은 `file://`에서 외부 API 호출을 막을 수 있습니다. 그때는 Chrome 또는 Edge로 열어 주세요.
 
 ## API 키 발급
 
@@ -21,23 +31,6 @@ npm, Node, Express **없이** 동작하는 작은 웹 페이지입니다.
 - URL 예: `https://www.youtube.com/channel/UCxxxxxxxxxxxxxxxxxxxxxx` → `UC…` 부분이 ID
 - `@핸들`은 이 앱의 채널 ID가 아닙니다
 
-## 실행 (npm 불필요)
-
-### 방법 A — 파일 열기
-
-`youtube-channel-videos/index.html`을 브라우저로 엽니다.
-
-> 일부 브라우저는 `file://`에서 API 호출을 막을 수 있습니다. 안 되면 방법 B를 쓰세요.
-
-### 방법 B — 간단한 로컬 서버 (Python만, npm 아님)
-
-```bash
-cd youtube-channel-videos
-python3 -m http.server 3000
-```
-
-브라우저에서 [http://localhost:3000](http://localhost:3000) 을 엽니다.
-
 ## 사용
 
 1. **YouTube API 키** 입력
@@ -49,7 +42,7 @@ python3 -m http.server 3000
 
 ```
 youtube-channel-videos/
-├── index.html   # 페이지
+├── index.html   # 페이지 (이것만 열면 됨)
 ├── app.js       # API 호출 + UI
 ├── styles.css   # 스타일
 └── README.md

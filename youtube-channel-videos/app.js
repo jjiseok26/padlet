@@ -81,7 +81,7 @@ async function youtubeGet(pathname, params, apiKey) {
     res = await fetch(url)
   } catch {
     const err = new Error(
-      '네트워크 오류입니다. 인터넷 연결을 확인하세요. (파일로 직접 연 경우 CORS 제한이 있을 수 있어, README의 간단 실행 방법을 쓰세요.)',
+      '네트워크 오류입니다. 인터넷 연결을 확인하세요. Chrome/Edge에서 index.html 파일을 직접 연 뒤 다시 시도해 보세요.',
     )
     err.code = 'network'
     throw err
